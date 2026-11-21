@@ -1,0 +1,46 @@
+.wrap {
+  max-width: 760px;
+  padding: 0 var(--gutter) 40px;
+}
+
+.index li + li {
+  border-top: 1px solid var(--rule);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  text-decoration: none;
+}
+
+.thumb {
+  flex: none;
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  background: var(--paper-deep);
+}
+
+.name {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.credit {
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+  font-size: 14px;
+  color: var(--ink-2);
+}
+
+@media (hover: hover) {
+  .row:hover .name {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 5px;
+  }
+}

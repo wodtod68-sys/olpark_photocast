@@ -1,0 +1,128 @@
+:root {
+  --paper: #ffffff;
+  --paper-deep: #f2f2f0;
+  --ink: #1d1c1a;
+  --ink-2: rgba(29, 28, 26, 0.64);
+  --ink-3: rgba(29, 28, 26, 0.42);
+  --rule: rgba(29, 28, 26, 0.2);
+  --accent: #c8401e;
+
+  --serif: 'Noto Serif KR', 'Nanum Myeongjo', 'AppleMyungjo', serif;
+  --sans: 'Pretendard Variable', Pretendard, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+
+  --gutter: 16px;
+  color-scheme: light;
+}
+
+@media (min-width: 600px) {
+  :root {
+    --gutter: 24px;
+  }
+}
+
+@media (min-width: 960px) {
+  :root {
+    --gutter: 32px;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.6;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+h1,
+h2,
+h3,
+p,
+ul,
+ol,
+figure,
+fieldset {
+  margin: 0;
+  padding: 0;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+fieldset {
+  border: 0;
+  min-width: 0;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* 항목 이름: 날짜, 시간, 혼잡도 */
+.label {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 지도 마커와 같은 모양의 번호 표식 */
+.spot-no {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  flex: none;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

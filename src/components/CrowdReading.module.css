@@ -1,0 +1,106 @@
+.crowd {
+  padding-top: 20px;
+}
+
+.reading {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.score {
+  font-size: 72px;
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+}
+
+.outof {
+  font-size: 15px;
+  color: var(--ink-3);
+}
+
+.level {
+  margin-left: 10px;
+  font-family: var(--serif);
+  font-size: 26px;
+  font-weight: 700;
+}
+
+/* 신문 예보면의 눈금자 */
+.scale {
+  position: relative;
+  display: flex;
+  margin-top: 20px;
+  padding-top: 8px;
+}
+
+.step {
+  flex-basis: 0;
+  min-width: 0;
+}
+
+/* 구간마다 왼쪽 눈금 + 아래 기준선. 현재 구간만 채운다 */
+.bar {
+  position: relative;
+  display: block;
+  height: 8px;
+  border-left: 1px solid var(--ink);
+}
+
+.step:last-child .bar {
+  border-right: 1px solid var(--ink);
+}
+
+.bar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--ink);
+}
+
+.step[data-current] .bar {
+  background: var(--accent);
+}
+
+.stepLabel {
+  display: block;
+  margin-top: 6px;
+  padding-left: 6px;
+  font-size: 14px;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.step[data-current] .stepLabel {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.pointer {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 20px;
+  margin-left: -1px;
+  background: var(--ink);
+}
+
+.reason {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.reason .label {
+  flex: none;
+}

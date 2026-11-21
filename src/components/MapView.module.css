@@ -1,0 +1,74 @@
+/* 세로 화면(폰): 지도 전체를 화면 폭에 맞춰 한눈에 보여준다 */
+.scroller {
+  overflow: hidden; /* 가장자리 마커의 누르는 영역이 화면 밖으로 나가 가로 스크롤이 생기지 않게 */
+  border-bottom: 1px solid var(--rule);
+}
+
+.map {
+  position: relative;
+  aspect-ratio: 2464 / 1728;
+  width: 100%;
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* 가로 화면: 마스트헤드(56px)를 뺀 화면 높이를 지도가 채운다 */
+@media (orientation: landscape) {
+  .scroller {
+    height: calc(100svh - 56px);
+  }
+
+  .map {
+    width: min(100%, calc((100svh - 56px) * 2464 / 1728));
+    margin: 0 auto;
+  }
+}
+
+/* 누르는 영역 64px, 보이는 표식 46px */
+.marker {
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  margin: -32px 0 0 -32px;
+  display: grid;
+  place-items: center;
+  text-decoration: none;
+}
+
+.dot {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  border: 3px solid var(--paper);
+}
+
+.marker:focus-visible {
+  outline: none;
+}
+
+.marker:focus-visible .dot {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+/* 폰(세로)은 지도가 작으므로 표식도 조금 작게. 2·3번이 서로 붙지 않게 */
+@media (orientation: portrait) {
+  .dot {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+    border-width: 2px;
+  }
+}

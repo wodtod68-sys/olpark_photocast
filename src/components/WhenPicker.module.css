@@ -1,0 +1,68 @@
+.picker {
+  display: grid;
+  gap: 28px;
+}
+
+.legend {
+  padding: 0 0 10px;
+}
+
+/* 기차 시간표처럼 가는 선으로 나눈 8칸 표 */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  border-top: 1px solid var(--ink);
+  border-left: 1px solid var(--rule);
+}
+
+.cell {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 1px;
+  min-height: 56px;
+  padding: 6px 0;
+  border-right: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+
+.sub {
+  font-size: 13px;
+  color: var(--ink-2);
+  line-height: 1.2;
+}
+
+.big {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.cell[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.cell[aria-pressed='true'] .sub {
+  color: inherit;
+}
+
+.cell:disabled {
+  color: var(--ink-3);
+}
+
+.cell:disabled .big {
+  font-weight: 400;
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.cell:focus-visible {
+  outline-offset: -3px;
+}
+
+@media (hover: hover) {
+  .cell:not(:disabled):not([aria-pressed='true']):hover {
+    background: var(--paper-deep);
+  }
+}

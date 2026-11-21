@@ -11,6 +11,31 @@
   object-fit: cover;
 }
 
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--ink-2);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* 사진 아래쪽 한 줄 조건 요약. 태그와 같은 먹색 띠 */
+.summary {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  max-width: 100%;
+  padding: 7px 12px 8px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .tag {
   position: absolute;
   top: 0;

@@ -1,0 +1,94 @@
+# 장면 상태표의 단계 임계값. 코드에는 숫자를 넣지 않고 여기서만 바꾼다.
+
+# 빛 단계: 태양고도(도) 상한. L0 < -6, L1 -6~0, L2 0~6, L3 6~15, L4 15~35, L5 > 35
+light_stages:
+  - {stage: L0, max_elev: -6,   label: night}
+  - {stage: L1, max_elev: 0,    label: civil twilight}
+  - {stage: L2, max_elev: 6,    label: golden hour}
+  - {stage: L3, max_elev: 15,   label: low sun}
+  - {stage: L4, max_elev: 35,   label: mid sun}
+  - {stage: L5, max_elev: 999,  label: high sun}
+
+# 빛 방향: 상대 방위 rel = 태양방위 − 카메라방위 (−180~180, 음수 = 왼쪽)
+#   |rel| <= back_max  → back-lit (해가 카메라 앞쪽 = 역광)
+#   |rel| >= front_min → front-lit (해가 카메라 뒤쪽 = 순광)
+#   그 사이            → side-left / side-right
+direction:
+  back_max: 45
+  front_min: 135
+  # 결과 문장용 성분 임계값: 앞뒤 성분 f = cos(rel), 좌우 성분 s = sin(rel)
+  forward_strong: 0.25
+  side_strong: 0.3
+  # 프롬프트의 "카메라 기준 위치" 구간 경계 |rel|(도):
+  #   < ahead → ahead, < ahead_side → ahead_left/right, < side → left/right,
+  #   < behind_side → behind_left/right, 그 이상 → behind
+  position_bounds: {ahead: 15, ahead_side: 80, side: 100, behind_side: 165}
+
+# 직사광 D0~D3: 위에서부터 처음 맞는 단계. total/low = 운량 %
+direct_sun:
+  - {stage: D3, total_max: 30, low_max: 20, label: full sun}
+  - {stage: D2, total_max: 60, low_max: 40, label: mostly sunny}
+  - {stage: D1, total_max: 85, low_max: 70, label: intermittent sun}
+  - {stage: D0, total_max: 101, low_max: 101, label: no direct sun}
+
+# 연무 H0~H4: PM2.5(µg/m³) 기준 단계에 습도·강수 보정
+haze:
+  pm25_stages:          # 상한
+    - {stage: 0, max: 15}
+    - {stage: 1, max: 35}
+    - {stage: 2, max: 75}
+    - {stage: 3, max: 9999}
+  humid_rh: 90          # 습도가 이 이상이면 +1 (흡습 성장·옅은 안개)
+  fog_visibility_m: 1000  # 시정이 이보다 낮으면 H4 (안개)
+  fog_rh: 97            # 시정 자료가 없을 때: 습도 이 이상 + 바람 약함 + 저고도 태양이면 H4
+  fog_wind_max: 2.0
+  washout_mm_3h: 1.0    # 직전 3시간 강수가 이 이상이면 −1 (세정 효과)
+  rh_only_stages:       # PM2.5를 못 구했을 때 습도만으로 (상한 %)
+    - {stage: 0, max: 50}
+    - {stage: 1, max: 80}
+    - {stage: 2, max: 101}
+
+# 하늘 타입
+sky_type:
+  clear_total_max: 20
+  overcast_total_min: 85
+  low_many_min: 50       # 하층운 이 이상이면 "하층운 많음"
+  high_dominant: true    # 상층운이 하층·중층보다 많고 하층<30이면 "상층운"
+
+# 기상청 하늘상태(SKY) → 운량(%) 근사. 층별 운량은 없으므로 Open-Meteo로 보충한다.
+kma_sky_to_cover: {1: 15, 3: 70, 4: 95}
+# 기상청 강수형태(PTY)
+kma_pty: {0: none, 1: rain, 2: sleet, 3: snow, 4: shower, 5: drizzle, 6: drizzle_snow, 7: snow_flurry}
+
+# 강수 판정
+precip:
+  rain_mm_h: 0.1
+  wet_ground_mm_3h: 0.2
+frost:
+  temp_max_c: 0.5
+  rh_min: 80
+  max_light_stage: L3     # 해가 낮을 때만
+
+# 에어코리아 예보 등급 → 대표 PM2.5 (µg/m³)
+airkorea_grade_pm25: {좋음: 10, 보통: 25, 나쁨: 50, 매우나쁨: 90}
+
+# 랜드마크 가시성 (쿠슈미더 근사)
+# 시정 V(km) = 3.912 / β,  β = rayleigh + k_pm · PM2.5 · (1 − RH/100)^(−gamma)
+# 거리 d의 대상 겉보기 대비 C = exp(−3.912 · d / V)
+visibility_model:
+  rayleigh_per_km: 0.012
+  k_pm_per_km: 0.0035      # µg/m³당 소산계수 (질량소산효율 약 3.5 m²/g)
+  gamma: 0.6
+  rh_cap: 95
+  contrast_stages:         # 하한
+    - {stage: clear, min: 0.5}
+    - {stage: soft, min: 0.2}
+    - {stage: faint, min: 0.05}
+    - {stage: hidden, min: 0.0}
+
+# 예보 소스 선택
+sources:
+  kma_max_hours_ahead: 72     # 단기예보 범위
+  archive_lag_days: 5         # ERA5 아카이브 지연. 이보다 최근 과거는 forecast API(past_days)로
+  forecast_max_days: 16
+  forecast_cache_ttl_s: 3600

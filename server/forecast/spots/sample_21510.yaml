@@ -1,0 +1,36 @@
+# 검증용 샘플 스팟: SkyFinder 웹캠 21510 (멕시코시티, 혁명기념탑, Hotel Casa Blanca 옥상).
+# 같은 날 실제 사진이 있어 예측을 바로 채점할 수 있다:
+#   UTC 18:02 / 20:47(기준) / 22:02 / 23:32  =  현지(UTC−6) 12:02 / 14:47 / 16:02 / 17:32
+name: "Webcam 21510 — Monumento a la Revolución, Mexico City"
+lat: 19.4362327            # meta.csv
+lon: -99.1546369
+timezone: America/Mexico_City
+
+camera_bearing_deg: 315    # outputs/camera_azimuth.csv (step6 추정, corr 0.54)
+hfov_deg: 65
+vfov_deg: 50
+pitch_deg: -8              # 지평선이 화면 위 1/3 근처 → 약 8° 내려다봄 (눈대중)
+
+base_image: ${SKYFINDER_DIR}/21510/20130215_204729.jpg
+base_datetime: "2013-02-15 14:47:29"   # 현지 시각. 파일명은 UTC(20:47:29), EXIF 없음
+
+# 지면/하늘 구분 (선택). 없으면 verify가 기준 사진에서 하늘을 추정한다.
+sky_mask: ${SKYFINDER_DIR}/masks/skyfinder_masks/21510.png
+ignore_mask: outputs/cams/21510/overlay_mask.png      # 로고·시각 글자 (step2)
+
+landmarks:
+  - {name: "the monument dome", distance_km: 0.25, description: "copper dome of the Monumento a la Revolución in the center"}
+  - {name: "the distant mountain range", distance_km: 25, description: "low mountain range on the horizon behind the city"}
+trees: []
+
+obstacle_elev_deg: 5
+typical_pm25: 25           # 2013년 Open-Meteo 대기질 자료가 없을 때 쓰는 평소 PM2.5 (추정, source=spot_default)
+
+# 프롬프트에 들어가는 장면 용어
+scene_terms:
+  subjects: "the monument, "              # preserve 문장 "framing, {subjects}all buildings…"
+  subjects_short: "the monument and buildings"
+  ground: "the plaza"
+  scene_kind: "city webcam"
+
+notes: "옥상 고정 웹캠. 2013-09~2014-01 광장에 천막 농성장. 좌하단 지붕은 2013-05 무렵 빨갛게 칠해짐."

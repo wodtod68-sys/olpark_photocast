@@ -1,0 +1,103 @@
+# 서울 평년 수목·화초 단계 달력 — ★ 추정치.
+# 기상청 개화·단풍 평년값과 일반적인 관찰을 바탕으로 잡은 대략의 날짜라 해마다 1~2주 차이가 난다.
+# 답사·사진 관찰로 고쳐 쓴다. 날짜는 MM-DD, start 포함 ~ 다음 단계 start 전까지.
+# desc: 프롬프트에 들어가는 영어 묘사 / ko: 화면 요약(summary_ko)에 쓰는 짧은 한국어
+# name_en: 프롬프트의 수종 이름 / name_ko: 화면 요약의 수종 이름
+species:
+  ginkgo:
+    name_en: ginkgo trees
+    name_ko: 은행나무
+    aliases: [은행나무, ginkgo]
+    stages:
+      - {start: "01-01", name: bare,        ko: 앙상함,     desc: "bare branches with no leaves"}
+      - {start: "04-10", name: leaf_out,    ko: 새잎,       desc: "small fresh light-green leaves"}
+      - {start: "05-01", name: green,       ko: 초록,       desc: "full green foliage"}
+      - {start: "10-20", name: turning,     ko: 물드는 중,  desc: "foliage turning from green to yellow"}
+      - {start: "11-01", name: peak_yellow, ko: 노란 절정,  desc: "bright golden-yellow foliage"}
+      - {start: "11-12", name: leaf_fall,   ko: 잎 대부분 짐, desc: "thinning yellow foliage with many fallen yellow leaves on the ground"}
+      - {start: "11-28", name: bare,        ko: 앙상함,     desc: "bare branches with no leaves"}
+  maple:
+    name_en: maple trees
+    name_ko: 단풍나무
+    aliases: [단풍나무, maple]
+    stages:
+      - {start: "01-01", name: bare,        ko: 앙상함,     desc: "bare branches"}
+      - {start: "04-10", name: leaf_out,    ko: 새잎,       desc: "fresh reddish-green young leaves"}
+      - {start: "05-01", name: green,       ko: 초록,       desc: "full green foliage"}
+      - {start: "10-18", name: turning,     ko: 물드는 중,  desc: "leaves starting to turn orange and red"}
+      - {start: "10-30", name: peak_red,    ko: 단풍 절정,  desc: "vivid red and orange foliage"}
+      - {start: "11-15", name: leaf_fall,   ko: 잎 지는 중, desc: "sparse dull-red leaves, many fallen leaves"}
+      - {start: "12-01", name: bare,        ko: 앙상함,     desc: "bare branches"}
+  cherry:
+    name_en: cherry trees
+    name_ko: 벚나무
+    aliases: [벚나무, cherry]
+    stages:
+      - {start: "01-01", name: bare,        ko: 앙상함,     desc: "bare dark branches"}
+      - {start: "03-30", name: bloom,       ko: 벚꽃,       desc: "pale pink cherry blossoms covering the branches"}
+      - {start: "04-12", name: petal_fall,  ko: 꽃잎 짐,    desc: "fading blossoms mixed with new green leaves, petals on the ground"}
+      - {start: "04-22", name: green,       ko: 초록,       desc: "full green foliage"}
+      - {start: "10-05", name: turning,     ko: 단풍,       desc: "foliage turning red-orange"}
+      - {start: "10-28", name: leaf_fall,   ko: 잎 지는 중, desc: "sparse reddish leaves"}
+      - {start: "11-15", name: bare,        ko: 앙상함,     desc: "bare dark branches"}
+  metasequoia:
+    name_en: metasequoia trees
+    name_ko: 메타세쿼이아
+    aliases: [메타세쿼이아, metasequoia]
+    stages:
+      - {start: "01-01", name: bare,        ko: 앙상함,     desc: "bare reddish-brown conical trees"}
+      - {start: "04-15", name: leaf_out,    ko: 새잎,       desc: "soft fresh green needles"}
+      - {start: "05-10", name: green,       ko: 초록,       desc: "dense green conical canopy"}
+      - {start: "10-25", name: turning,     ko: 물드는 중,  desc: "needles turning rusty orange-brown"}
+      - {start: "11-10", name: peak_rust,   ko: 갈색 절정,  desc: "rich rusty orange-brown needles"}
+      - {start: "11-28", name: needle_fall, ko: 잎 지는 중, desc: "thinning brown needles"}
+      - {start: "12-15", name: bare,        ko: 앙상함,     desc: "bare reddish-brown conical trees"}
+  pine:
+    name_en: pine trees
+    name_ko: 소나무
+    aliases: [소나무, pine]
+    stages:
+      - {start: "01-01", name: evergreen,   ko: 늘푸름,     desc: "dark green needles"}
+  arborvitae:
+    name_en: oriental arborvitae tree
+    name_ko: 측백나무
+    aliases: [측백나무, arborvitae, thuja]
+    stages:
+      - {start: "01-01", name: evergreen,   ko: 늘푸름,     desc: "dense dark-green foliage"}
+  # 잔디(들잔디·한국잔디): 겨울 휴면으로 누렇게 변하는 시기가 화면 인상을 크게 바꾼다
+  lawn:
+    name_en: lawn
+    name_ko: 잔디
+    aliases: [잔디, 들잔디, lawn, grass]
+    stages:
+      - {start: "01-01", name: dormant,     ko: 누런 휴면,  desc: "dry straw-brown dormant grass"}
+      - {start: "04-10", name: greening,    ko: 푸르러지는 중, desc: "grass greening, patchy green and brown"}
+      - {start: "05-05", name: green,       ko: 초록,       desc: "lush green grass"}
+      - {start: "09-25", name: yellowing,   ko: 누레지는 중, desc: "green grass turning yellowish"}
+      - {start: "10-25", name: browning,    ko: 대부분 누렇게, desc: "mostly yellow-brown grass"}
+      - {start: "11-15", name: dormant,     ko: 누런 휴면,  desc: "dry straw-brown dormant grass"}
+  # 들꽃마루 가을 꽃밭(코스모스·황화코스모스). 파종·정리 시기는 공원 관리 일정에 따라 다르다
+  cosmos:
+    name_en: cosmos field
+    name_ko: 코스모스
+    aliases: [코스모스, 황화코스모스, cosmos]
+    stages:
+      - {start: "01-01", name: cleared,     ko: 정리된 밭,  desc: "bare soil and dry stalks with no flowers"}
+      - {start: "05-01", name: growing,     ko: 자라는 중,  desc: "low green leafy plants with no flowers"}
+      - {start: "07-01", name: tall_green,  ko: 꽃 드묾,    desc: "tall green cosmos plants with only a few flowers"}
+      - {start: "09-01", name: bloom,       ko: 만개,       desc: "a dense field of blooming orange and yellow cosmos flowers"}
+      - {start: "10-20", name: fading,      ko: 지는 중,    desc: "fading cosmos with fewer, duller flowers and brown seed heads"}
+      - {start: "11-05", name: withered,    ko: 시듦,       desc: "withered brown stalks with no flowers"}
+  # 장미광장: 5월 중순~6월 1차 개화, 가을에 2차 개화(약하게)
+  rose:
+    name_en: rose bushes
+    name_ko: 장미
+    aliases: [장미, rose]
+    stages:
+      - {start: "01-01", name: dormant,     ko: 휴면,       desc: "pruned bare rose bushes with no flowers or leaves"}
+      - {start: "04-01", name: leaf,        ko: 잎만,       desc: "rose bushes with fresh green leaves and no flowers"}
+      - {start: "05-15", name: bloom,       ko: 만개,       desc: "rose bushes in full bloom with many red, pink and white roses"}
+      - {start: "06-20", name: after_bloom, ko: 꽃 드묾,    desc: "green rose bushes with only a few scattered flowers"}
+      - {start: "09-25", name: autumn_bloom, ko: 가을 개화, desc: "rose bushes with a moderate autumn bloom"}
+      - {start: "11-01", name: late,        ko: 시든 꽃,    desc: "rose bushes with sparse faded flowers and yellowing leaves"}
+      - {start: "12-01", name: dormant,     ko: 휴면,       desc: "pruned bare rose bushes with no flowers or leaves"}

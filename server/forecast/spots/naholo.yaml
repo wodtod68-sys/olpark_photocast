@@ -1,0 +1,43 @@
+# 나홀로나무 (올림픽공원 6경, 몽촌토성 잔디 언덕) — ★ 임시 설정. 답사 후 직접 찍은 사진·실측값으로 교체.
+name: "나홀로나무"
+lat: 37.522741          # OpenStreetMap '나홀로나무'(attraction) 노드 = 나무 위치. 촬영 위치는 답사 때 기록
+lon: 127.120377
+timezone: Asia/Seoul
+
+# ★ 임시 추정, 답사 후 교체.
+#   사진 속 나무가 고르게 정면으로 빛을 받고 그림자가 나무 뒤쪽(약간 오른쪽)으로 짧게 떨어져 있다
+#   → 한낮 해가 카메라 뒤(남쪽)에 있었다고 보고, 카메라는 북북동을 본다고 추정.
+camera_bearing_deg: 10
+hfov_deg: 40            # ★ 추정: 세로 사진(2:3), 표준 화각 렌즈
+vfov_deg: 58
+pitch_deg: 0
+
+base_image: ../public/images/naholo.jpg     # server/ 기준 상대 경로 (친구 저장소의 공개 이미지)
+# ★ 촬영 시각 모름(EXIF 없음). "맑은 날 한낮(12시)·맑음"으로 가정.
+#   날짜는 사진 속 잔디가 초록에서 누레지기 시작한 모습으로 보아 초가을로 추정.
+base_datetime: "2025-10-01 12:00"
+base_assumed:            # 기준 사진의 날씨를 API로 조회하지 않고 이 값으로 가정
+  weather: {cloud_cover: 5, cloud_cover_low: 0, cloud_cover_mid: 0, cloud_cover_high: 5, relative_humidity_2m: 50, temperature_2m: 21}
+  air: {pm25: 15}
+
+sky_mask: null
+ignore_mask: null
+
+landmarks:
+  - {name: "the small group of trees on the far ridge", distance_km: 0.3, description: "several small trees on the horizon at the left"}
+trees:                   # ★ 추정
+  - {species: 측백나무, description: "the lone tree in the center (측백나무로 알려져 있으나 확인 필요)"}
+  - {species: 잔디, description: "the grassy hill covering the lower half"}
+
+obstacle_elev_deg: 3     # 언덕 위라 주변 장애물이 낮다 (★ 추정)
+typical_pm25: 20
+airkorea_region: 서울
+airkorea_station: 송파구  # ★ 측정소 이름 확인 필요
+
+scene_terms:
+  subjects: "the lone tree, its support poles, the small trees on the far ridge, the birds, "
+  subjects_short: "the lone tree"
+  ground: "the grassy hill"
+  scene_kind: "landscape photo"
+
+notes: "기준 사진 출처: 한국관광재단 · 공공누리 제1유형 (친구 저장소 public/images)."

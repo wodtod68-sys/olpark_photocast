@@ -47,7 +47,12 @@ export function ResultScreen({ spot, today, date, hour, onChange }: Props) {
       </TopBar>
       <main className={styles.stage}>
         <div className={styles.photo} key={datetime}>
-          <ForecastImage src={current?.image.src ?? null} alt={current?.image.alt ?? ''} />
+          <ForecastImage
+            src={current?.image.src ?? null}
+            alt={current?.image.alt ?? ''}
+            position={current?.status === 'ready' ? spot.photo.position : undefined}
+            summary={current?.summary}
+          />
         </div>
 
         <div className={styles.side}>
@@ -57,6 +62,7 @@ export function ResultScreen({ spot, today, date, hour, onChange }: Props) {
             </div>
           )}
           <p className={styles.note}>AI 예상 이미지는 분위기를 보여주는 참고용이며, 실제 촬영 결과와 다를 수 있습니다.</p>
+          {current?.status === 'fallback' && current.note && <p className={styles.note}>{current.note}</p>}
           <div className={styles.change}>
             <WhenPicker today={today} date={date} hour={hour} onChange={onChange} />
           </div>

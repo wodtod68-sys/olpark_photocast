@@ -1,0 +1,161 @@
+# 프롬프트 문장 템플릿. 코드에는 문장을 두지 않는다 — 여기만 고쳐 가며 고도화한다.
+# version은 meta.json·validation_log.csv에 같이 기록된다. 문장을 바꾸면 version도 올릴 것.
+# 기본 톤: 실제 웹캠 정답 대비 지면 ΔE를 16.6 → 8.0으로 줄인 참고 프롬프트 (21510, 14:47 → 16:02).
+version: "t0.1"
+
+# 블록 순서. 참고 프롬프트처럼 "Edit this photo to show …"(시간 변화)로 시작한다.
+# lighting 블록은 우선순위 규칙(강수 > 안개 > 흐림 > 밤 > 태양 방향)에 따라 하나만 고른다.
+order: [time_change, preserve, lighting, consequences, exposure, sky_air, trees, ground, no_beautify]
+
+# ---------------- 2) 시간 변화 ----------------
+time_change:
+  later: "Edit this photo to show the same scene {amount} later{pod}."
+  earlier: "Edit this photo to show the same scene {amount} earlier{pod}."
+  same_time: "Edit this photo to show the same scene at the same time of day under the conditions described below."
+  other_day: "Edit this photo to show the same scene on a different day, at about {clock}{pod}."
+  max_hours_relative: 18          # 이보다 차이가 크면 other_day 문장
+amount:
+  minutes: "about {m} minutes"
+  one_hour: "about one hour"
+  hours: "about {h} hours"
+part_of_day:                       # 목표 현지 시각 [시작시, 끝시)
+  - {from: 4,  to: 11, text: " in the morning", word: morning}
+  - {from: 11, to: 13, text: " around midday", word: midday}
+  - {from: 13, to: 17, text: " in the afternoon", word: afternoon}
+  - {from: 17, to: 20, text: " in the early evening", word: evening}
+  - {from: 20, to: 28, text: " at night", word: night}
+
+# ---------------- 1) 보존 ----------------
+preserve: "Keep the exact composition, camera angle, framing, {subjects}all buildings, streets, trees and people unchanged in position and shape. Keep all text, timestamps and logos exactly as they are."
+
+# ---------------- 3) 태양 기하 / 우선순위 블록 ----------------
+lighting:
+  sun: "Sun position: about {elev} degrees above the horizon, {where}, {frame}. In the original it was {base_cmp}."
+  rain: "Weather: it is raining{intensity}; the light is soft and grey with no shadows, and the rain slightly softens distant objects."
+  snow: "Weather: it is snowing{intensity}; the light is soft and white-grey with no shadows, and falling snow softens distant objects."
+  fog: "Weather: dense fog; distant buildings fade into a flat white-grey, nearby objects lose contrast, and there are no shadows."
+  overcast: "Lighting: the sun is hidden behind thick clouds; the light is soft and even, with no direct sunlight and no distinct shadows."
+  twilight: "Lighting: the sun is just below the horizon; soft blue twilight with no direct sunlight and no shadows; street lights and lit windows may be on."
+  night: "Lighting: it is night; the scene is dark, lit only by street lights and windows, with no sunlight."
+precip_intensity: {light: " lightly", moderate: "", heavy: " heavily"}
+where:
+  ahead_left: "ahead of the camera and to the left"
+  ahead: "almost straight ahead of the camera"
+  ahead_right: "ahead of the camera and to the right"
+  left: "to the left of the camera"
+  right: "to the right of the camera"
+  behind_left: "behind the camera and to the left"
+  behind: "behind the camera"
+  behind_right: "behind the camera and to the right"
+frame: {in: "inside the frame", out: "outside the frame"}
+base_cmp:
+  below_horizon: "below the horizon"
+  elev_higher: "higher"
+  elev_lower: "lower"
+  more_side_left: "more to the left side"
+  more_side_right: "more to the right side"
+  more_ahead: "more ahead of the camera"
+  more_behind: "more behind the camera"
+  similar_dir: "in a similar direction"
+  joiner: " and "
+
+# ---------------- 4) 결과 ----------------
+consequences:
+  text: "Consequences: {parts}."
+  joiner: "; "
+  camera_facing:
+    shade: "the sides of {subjects_short} that face the camera are now mostly in shade and noticeably darker"
+    lit: "the sides of {subjects_short} that face the camera are now in direct sunlight and brighter"
+    grazing: "the sides of {subjects_short} that face the camera are lit at a grazing angle"
+  side:
+    ahead_left: "only surfaces facing left catch direct sunlight"
+    ahead_right: "only surfaces facing right catch direct sunlight"
+    left: "surfaces facing left are brightly lit while surfaces facing right are in shade"
+    right: "surfaces facing right are brightly lit while surfaces facing left are in shade"
+  shadows: "shadows on {ground} are {length} and point {direction}"
+  shadow_length:
+    much_longer: "much longer (about {k} times)"
+    longer: "longer"
+    same: "about the same length"
+    shorter: "shorter"
+    much_shorter: "much shorter"
+    thresholds: {much: 2.0, some: 1.25}
+  shadow_direction:
+    toward: "toward the camera"
+    more_toward: "more toward the camera"
+    away: "away from the camera"
+    more_away: "more away from the camera"
+    left: "to the left"
+    right: "to the right"
+  patchy: "shadows are softer and patchy as clouds pass over the sun"
+  spot_shaded: "the sun is low behind nearby obstacles, so the scene is in open shade with no direct sunlight on the ground"
+
+# ---------------- 5) 노출 변화 (delta_rules.yaml 수치 → 문장) ----------------
+exposure:
+  text: "Overall exposure: {ev}, {contrast}, {saturation}{warmth}."
+  ev:          # |Δev| 상한, 어두워질 때, 밝아질 때
+    - [0.2, "about the same brightness as the original", "about the same brightness as the original"]
+    - [0.45, "slightly darker than the original", "slightly brighter than the original"]
+    - [0.75, "about half a stop darker than the original", "about half a stop brighter than the original"]
+    - [1.3, "about one stop darker than the original", "about one stop brighter than the original"]
+    - [1.8, "about one and a half stops darker than the original", "about one and a half stops brighter than the original"]
+    - [2.6, "about two stops darker than the original", "about two stops brighter than the original"]
+    - [99, "much darker than the original, about {n} stops", "much brighter than the original, about {n} stops"]
+  contrast:
+    - [0.25, "similar contrast", "similar contrast"]
+    - [1.5, "lower contrast", "higher contrast"]
+    - [99, "much lower contrast", "much higher contrast"]
+  saturation:
+    - [0.25, "similar color saturation", "similar color saturation"]
+    - [1.5, "less saturated colors", "more saturated colors"]
+    - [99, "much less saturated, muted colors", "much more saturated colors"]
+  warmth:      # 음수 = 차가워짐, 양수 = 따뜻해짐 (앞쪽이 차가움, 뒤쪽이 따뜻함)
+    - [0.4, "", ""]
+    - [1.5, ", slightly cooler light", ", slightly warmer light"]
+    - [99, ", cool bluish light", ", warm golden light"]
+
+# ---------------- 6~7) 하늘·대기·랜드마크 ----------------
+sky_air: "Sky and air: {sky}; {air}."
+sky:
+  clear: "clear blue sky"
+  clear_toward_sun: "paler, hazier blue-grey sky"
+  high: "thin high clouds veiling a pale sky"
+  low_many: "many low grey clouds"
+  overcast: "a uniform grey overcast sky"
+  partly: "scattered clouds in a blue sky"
+  golden: "warm pale-orange sky near the horizon, blue higher up"
+  twilight: "deep blue twilight sky, brighter near the horizon"
+  night: "a dark night sky"
+  rain: "dark grey rain clouds"
+  fog: "a flat white-grey sky"
+air:
+  more: "more {pod_word} haze, the distant skyline softer than in the original"
+  less: "clearer air, the distant skyline crisper than in the original"
+  same: "similar haze to the original"
+  fog: "thick fog hides the distance"
+landmark: "{name} {vis}"
+landmark_vis:
+  clear: "is clearly visible"
+  soft: "is visible but softened by haze"
+  faint: "is only faintly visible through haze"
+  hidden: "is hidden by haze"
+
+# ---------------- 8) 수목 ----------------
+trees:
+  text: "Trees: {items}."
+  joiner: "; "
+  change: "make the {species} show {target} instead of {base}"
+
+# ---------------- 9) 지면 ----------------
+ground:
+  text: "Ground: {items}."
+  joiner: "; "
+  wet: "wet surfaces with reflections from recent rain"
+  dry_from_wet: "dry surfaces with no rain reflections"
+  snow: "a layer of snow on the ground and rooftops"
+  snow_gone: "no snow on the ground"
+  frost: "light white frost on grass and roofs"
+  leaves: "fallen leaves scattered on the ground"
+
+# ---------------- 10) 미화 금지 ----------------
+no_beautify: "Do not enhance, beautify or add drama. Keep the dull, slightly washed-out look of a real {scene_kind}."

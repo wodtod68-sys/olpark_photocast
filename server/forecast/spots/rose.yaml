@@ -1,0 +1,41 @@
+# 장미광장 (올림픽공원 9경) — ★ 임시 설정. 답사 후 직접 찍은 사진·실측값으로 교체.
+name: "장미광장"
+lat: 37.512756          # OpenStreetMap '올림픽공원 장미광장' 노드
+lon: 127.126297
+timezone: Asia/Seoul
+
+# ★ 임시 추정, 답사 후 교체. 원형 정자(콜로네이드) 뒤 위쪽에서 햇빛이 비쳐 드는 역광 → 서쪽을 본다고 추정.
+camera_bearing_deg: 270
+hfov_deg: 14            # ★ 추정: 세로 사진, 망원(배경 흐림이 큼)
+vfov_deg: 21
+pitch_deg: 2
+
+base_image: ../public/images/rose.jpg
+# ★ 촬영 시각 모름(EXIF 없음). 요청대로 "맑은 날 한낮(12시)·맑음"으로 가정.
+#   주의: 사진은 실제로는 해를 마주 본 골든아워 역광(황금빛 연무, 빛줄기)으로 보인다. 한낮 가정과 어긋남.
+#   사진을 바꾸기 전까지 대안: base_datetime: "2025-05-25 18:30" + base_assumed 제거
+#   날짜는 장미가 만개한 모습으로 보아 5월 하순으로 추정.
+base_datetime: "2025-05-25 12:00"
+base_assumed:
+  weather: {cloud_cover: 5, cloud_cover_low: 0, cloud_cover_mid: 0, cloud_cover_high: 5, relative_humidity_2m: 55, temperature_2m: 24}
+  air: {pm25: 15}
+
+sky_mask: null
+ignore_mask: null
+
+landmarks: []
+trees:                   # ★ 추정. 뒤쪽 숲은 역광이라 수종 판별 어려워 넣지 않음
+  - {species: 장미, description: "rose beds in front of the colonnade"}
+
+obstacle_elev_deg: 15    # 정자 뒤 키 큰 숲 (★ 추정)
+typical_pm25: 20
+airkorea_region: 서울
+airkorea_station: 송파구
+
+scene_terms:
+  subjects: "the white circular colonnade, its draped fabric, the trees behind, "
+  subjects_short: "the colonnade"
+  ground: "the rose beds"
+  scene_kind: "garden photo"
+
+notes: "기준 사진 출처: 한국관광재단 · 공공누리 제1유형 (친구 저장소 public/images)."

@@ -5,4 +5,8 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   base: './',
   plugins: [react()],
+  // 개발용: AI 예상 이미지 서버(server/, uvicorn :8000)로 /api 요청을 넘긴다
+  server: {
+    proxy: { '/api': 'http://localhost:8000' },
+  },
 });

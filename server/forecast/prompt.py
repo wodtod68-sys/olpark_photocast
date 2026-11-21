@@ -1,0 +1,200 @@
+"""프롬프트 생성. 문장은 전부 config/templates.yaml — 여기서는 상태표를 보고 어떤 문장 키를 쓸지만 고른다.
+
+lighting 블록 우선순위: 강수 > 안개 > 밤 > 박명 > 흐림 > 태양 방향.
+흐림·강수·안개·밤이면 태양 기하·그림자(consequences) 대신 균일한 빛 문장만 쓴다.
+"""
+from __future__ import annotations
+from datetime import datetime
+from .common import load_yaml
+
+DIR = load_yaml("rules.yaml")["direction"]
+
+
+def _bin(table: list, value: float, **fmt) -> str:
+    """templates의 [상한, 음수 문장, 양수 문장] 표에서 |value|로 문장을 고른다."""
+    for row in table:
+        if abs(value) < row[0]:
+            return (row[1] if value < 0 else row[2]).format(**fmt)
+    return (table[-1][1] if value < 0 else table[-1][2]).format(**fmt)
+
+
+def part_of_day(T: dict, dt: datetime) -> dict:
+    h = dt.hour + dt.minute / 60
+    for p in T["part_of_day"]:
+        if p["from"] <= h < p["to"] or p["from"] <= h + 24 < p["to"]:
+            return p
+    return T["part_of_day"][-1]
+
+
+def block_time(T, base_dt, tgt_dt) -> str:
+    tc = T["time_change"]
+    minutes = (tgt_dt - base_dt).total_seconds() / 60
+    pod = part_of_day(T, tgt_dt)
+    if abs(minutes) < 10:
+        return tc["same_time"]
+    if abs(minutes) > 60 * tc["max_hours_relative"]:
+        return tc["other_day"].format(clock=tgt_dt.strftime("%H:%M"), pod=pod["text"])
+    m = abs(minutes)
+    if m < 90:
+        amount = T["amount"]["minutes"].format(m=int(round(m / 5) * 5))
+    else:
+        h = round(m / 30) / 2
+        amount = T["amount"]["hours"].format(h=f"{h:g}")
+    return tc["later" if minutes > 0 else "earlier"].format(amount=amount, pod=pod["text"])
+
+
+def lighting_mode(t: dict) -> str:
+    if t["precip"]["form"] in ("rain", "snow"):
+        return t["precip"]["form"]
+    if t["haze"]["level"] >= 4:
+        return "fog"
+    if t["light"]["stage"] == "L0":
+        return "night"
+    if t["light"]["stage"] == "L1":
+        return "twilight"
+    if t["direct_sun"]["stage"] == "D0":
+        return "overcast"
+    return "sun"
+
+
+def base_comparison(T, b: dict, t: dict) -> str:
+    bc = T["base_cmp"]
+    if b["light"]["elev"] < 0:
+        return bc["below_horizon"]
+    parts = []
+    de = b["light"]["elev"] - t["light"]["elev"]
+    if abs(de) >= 5:
+        parts.append(bc["elev_higher"] if de > 0 else bc["elev_lower"])
+    bf, tf = b["direction"]["forward"], t["direction"]["forward"]
+    bl = b["direction"]["lateral"]
+    if bf < tf - 0.1:
+        parts.append((bc["more_side_left"] if bl < 0 else bc["more_side_right"]) if abs(bl) > 0.5 else bc["more_behind"])
+    elif bf > tf + 0.1:
+        parts.append(bc["more_ahead"])
+    elif b["direction"]["position"] != t["direction"]["position"]:
+        parts.append(T["where"][b["direction"]["position"]])
+    return bc["joiner"].join(parts) if parts else bc["similar_dir"]
+
+
+def block_lighting(T, b, t, mode) -> str:
+    L = T["lighting"]
+    if mode in ("rain", "snow"):
+        return L[mode].format(intensity=T["precip_intensity"].get(t["precip"]["intensity"], ""))
+    if mode != "sun":
+        return L[mode]
+    d = t["direction"]
+    return L["sun"].format(elev=int(round(t["light"]["elev"])), where=T["where"][d["position"]],
+                           frame=T["frame"]["in" if d["sun_in_frame"] else "out"], base_cmp=base_comparison(T, b, t))
+
+
+def block_consequences(T, b, t, terms) -> str:
+    C = T["consequences"]
+    d = t["direction"]
+    if d["spot_shaded"]:
+        return C["text"].format(parts=C["spot_shaded"])
+    fs, ss = DIR["forward_strong"], DIR["side_strong"]
+    f, s = d["forward"], d["lateral"]
+    subj = terms.get("subjects_short", "the buildings")
+    parts = [C["camera_facing"]["shade" if f > fs else "lit" if f < -fs else "grazing"].format(subjects_short=subj)]
+    side = "left" if s < 0 else "right"
+    if abs(s) > ss and f > -fs:
+        parts.append(C["side"][f"ahead_{side}" if f > fs else side])
+    # 그림자: 길이 배수(1/tan 고도의 비)와 방향(태양 반대쪽)
+    br, tr = b["direction"]["shadow_ratio"], d["shadow_ratio"]
+    SL = C["shadow_length"]
+    if tr is not None:
+        if br:
+            k = tr / br
+            th = SL["thresholds"]
+            length = (SL["much_longer"].format(k=f"{k:.1f}") if k >= th["much"] else SL["longer"] if k >= th["some"]
+                      else SL["much_shorter"] if k <= 1 / th["much"] else SL["shorter"] if k <= 1 / th["some"]
+                      else SL["same"])
+        else:
+            length = SL["longer"]
+        SD = C["shadow_direction"]
+        bf = b["direction"]["forward"] if br else None
+        if f > fs:
+            direction = SD["more_toward"] if bf is not None and bf < f - 0.1 else SD["toward"]
+        elif f < -fs:
+            direction = SD["more_away"] if bf is not None and bf > f + 0.1 else SD["away"]
+        else:
+            direction = SD["right"] if s < 0 else SD["left"]     # 해가 왼쪽이면 그림자는 오른쪽
+        parts.append(C["shadows"].format(ground=terms.get("ground", "the ground"), length=length, direction=direction))
+    if t["direct_sun"]["stage"] in ("D1", "D2"):
+        parts.append(C["patchy"])
+    return C["text"].format(parts=C["joiner"].join(parts))
+
+
+def block_exposure(T, dl: dict) -> str:
+    if dl.get("override"):
+        return dl["override"]
+    E, d = T["exposure"], dl["delta"]
+    return E["text"].format(ev=_bin(E["ev"], d["ev"], n=f"{abs(d['ev']):.0f}"),
+                            contrast=_bin(E["contrast"], d["contrast"]),
+                            saturation=_bin(E["saturation"], d["saturation"]),
+                            warmth=_bin(E["warmth"], d["warmth"]))
+
+
+def block_sky_air(T, b, t, tgt_dt) -> str:
+    fs = DIR["forward_strong"]
+    st = t["sky"]
+    if st in ("clear", "partly") and t["light"]["stage"] == "L2":
+        sky = T["sky"]["golden"]
+    elif st == "clear" and t["direction"]["forward"] > fs and t["light"]["elev"] < 50:
+        sky = T["sky"]["clear_toward_sun"]
+    else:
+        sky = T["sky"][st]
+    A = T["air"]
+    hb, ht = b["haze"]["level"], t["haze"]["level"]
+    if ht >= 4:
+        air = A["fog"]
+    elif ht > hb or (ht >= 1 and t["direction"]["forward"] - b["direction"]["forward"] > 0.2):
+        air = A["more"].format(pod_word=part_of_day(T, tgt_dt)["word"])     # 역광 쪽으로 갈수록 연무가 더 보인다
+    elif ht < hb:
+        air = A["less"]
+    else:
+        air = A["same"]
+    bvis = {lm["name"]: lm["visibility"] for lm in b["landmarks"]}
+    lms = [T["landmark"].format(name=lm["name"], vis=T["landmark_vis"][lm["visibility"]])
+           for lm in t["landmarks"] if lm["visibility"] != "clear" or bvis.get(lm["name"]) != "clear"]
+    if lms:
+        air = "; ".join([air] + lms)
+    return T["sky_air"].format(sky=sky, air=air)
+
+
+def block_trees(T, b, t) -> str:
+    bs = {x["species"]: x for x in b["trees"]}
+    items = [T["trees"]["change"].format(species=x.get("name_en", x["species"]),
+                                         target=x["desc"], base=bs[x["species"]]["desc"])
+             for x in t["trees"] if x["species"] in bs and bs[x["species"]]["stage"] != x["stage"]]
+    return T["trees"]["text"].format(items=T["trees"]["joiner"].join(items)) if items else ""
+
+
+def block_ground(T, b, t) -> str:
+    G = T["ground"]
+    bg, tg = set(b["ground"]), set(t["ground"])
+    items = [G[k] for k in ("snow", "wet", "frost", "leaves") if k in tg and k not in bg]
+    if "wet" in bg and "wet" not in tg and "snow" not in tg:
+        items.append(G["dry_from_wet"])
+    if "snow" in bg and "snow" not in tg:
+        items.append(G["snow_gone"])
+    return G["text"].format(items=G["joiner"].join(items)) if items else ""
+
+
+def build_prompt(spot: dict, base_state: dict, tgt_state: dict, dl: dict, base_dt, tgt_dt) -> tuple[str, dict]:
+    T = load_yaml("templates.yaml")
+    terms = spot.get("scene_terms", {})
+    mode = lighting_mode(tgt_state)
+    blocks = {
+        "time_change": block_time(T, base_dt.astimezone(spot["tz"]), tgt_dt.astimezone(spot["tz"])),
+        "preserve": T["preserve"].format(subjects=terms.get("subjects", "")),
+        "lighting": block_lighting(T, base_state, tgt_state, mode),
+        "consequences": block_consequences(T, base_state, tgt_state, terms) if mode == "sun" else "",
+        "exposure": block_exposure(T, dl),
+        "sky_air": block_sky_air(T, base_state, tgt_state, tgt_dt.astimezone(spot["tz"])),
+        "trees": block_trees(T, base_state, tgt_state),
+        "ground": block_ground(T, base_state, tgt_state),
+        "no_beautify": T["no_beautify"].format(scene_kind=terms.get("scene_kind", "photo")),
+    }
+    text = "\n".join(blocks[k] for k in T["order"] if blocks.get(k))
+    return text, dict(template_version=T["version"], lighting_mode=mode, blocks=blocks)

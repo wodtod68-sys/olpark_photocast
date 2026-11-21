@@ -1,0 +1,55 @@
+# 올림픽공원 포토 스팟 템플릿 — 답사 후 채운다. 스팟마다 이 파일을 복사해 spots/<스팟>.yaml로 저장.
+#
+# ── 답사 체크리스트 ──────────────────────────────────────────────
+# [ ] name                 스팟 이름 (예: "나홀로나무", "몽촌해자 산책로", "평화의 문")
+# [ ] lat, lon             촬영 위치. 폰 지도 앱에서 서 있는 자리를 길게 눌러 소수점 6자리까지
+# [ ] camera_bearing_deg   카메라가 보는 방위(북=0, 동=90, 남=180, 서=270).
+#                          폰 나침반 앱을 화면 중앙 방향으로 들고 3번 재서 평균. 자기편차(서울 약 −8°) 보정 여부 표시
+# [ ] hfov_deg, vfov_deg   기준 사진을 찍은 폰·배율. 1x 광각이면 대략 hfov 65~70 / vfov 50 (세로 사진이면 둘을 바꿈)
+# [ ] pitch_deg            위아래 기울기(수평=0, 내려다보면 음수). 수평계 앱으로
+# [ ] base_image           기준 사진 경로. 맑은 날 한낮, 1x, 수평 맞춰서. 원본(EXIF 포함) 그대로
+# [ ] base_datetime        EXIF에 촬영 시각이 있으면 비워 둬도 됨. 스크린샷·메신저 전송본은 EXIF가 지워지니 직접 기입
+# [ ] obstacle_elev_deg    해가 이 높이각 아래로 가면 스팟이 그늘(건물·숲·둑). 해 지는 쪽 장애물 꼭대기 높이각을
+#                          폰 경사계로 재기 (모르면 기본 5)
+# [ ] landmarks            보이는 랜드마크마다 이름, 거리(km, 지도 앱 거리재기), 화면 속 위치 묘사
+#                          예: 롯데월드타워(약 2km), 평화의 문, 몽촌토성 능선
+# [ ] trees                화면에 크게 보이는 수종(은행나무/단풍나무/벚나무/메타세쿼이아/소나무)과 위치·크기 묘사
+# [ ] scene_terms          프롬프트에 들어갈 주요 피사체·바닥 이름 (영어). 예: subjects_short "the lone tree and the hill"
+# [ ] airkorea_station     가까운 대기측정소 이름 (에어코리아 사이트에서 확인, 예: "송파구")
+# [ ] sky_mask (선택)      하늘=흰색, 나머지=검정 PNG. 없으면 verify가 자동 추정
+# [ ] 사진 추가            같은 자리에서 다른 시각·날씨 사진을 찍어 두면 verify 정답으로 쓴다(파일명에 시각 유지)
+# ─────────────────────────────────────────────────────────────────
+name: ""
+lat: 37.5207          # 올림픽공원 중심(임시). 스팟 위치로 바꿀 것
+lon: 127.1215
+timezone: Asia/Seoul
+
+camera_bearing_deg: null
+hfov_deg: 65
+vfov_deg: 50
+pitch_deg: 0
+
+base_image: ""
+base_datetime: null   # 비우면 EXIF DateTimeOriginal
+
+sky_mask: null
+ignore_mask: null
+
+landmarks: []
+#  - {name: "Lotte World Tower", distance_km: 2.0, description: "tall slender skyscraper on the right horizon"}
+trees: []
+#  - {species: ginkgo, description: "row of large ginkgo trees along the path on the left"}
+
+obstacle_elev_deg: 5
+typical_pm25: 20      # 대기질 자료가 없을 때만 씀
+
+airkorea_region: 서울
+airkorea_station: ""
+
+scene_terms:
+  subjects: ""                 # 예: "the lone tree, "
+  subjects_short: "the trees and buildings"
+  ground: "the ground"
+  scene_kind: "phone photo"
+
+notes: ""

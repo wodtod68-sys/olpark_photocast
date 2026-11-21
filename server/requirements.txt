@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+pyyaml
+google-genai
+pillow
+numpy
+pandas
+pvlib
+# forecast.verify / forecast.sweep(채점·비교 스트립)까지 쓰려면:
+# opencv-python-headless
+# scikit-image

@@ -1,3 +1,15 @@
 node_modules
 dist
 *.tsbuildinfo
+
+# AI 예상 이미지 서버 — 키·생성물은 커밋하지 않는다
+.env
+.env.*
+!.env.example
+*.local
+server/.env
+server/cache/
+server/outputs/
+server/.venv/
+__pycache__/
+*.pyc

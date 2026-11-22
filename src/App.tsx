@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { getSpots } from './data/api';
 import type { Spot } from './data/types';
 import { MapScreen } from './components/MapScreen';
@@ -6,16 +6,22 @@ import { PickScreen } from './components/PickScreen';
 import { ResultScreen } from './components/ResultScreen';
 import { resultHash } from './route';
 
+// 프롬프트 실험실은 따로 불러온다(공개 화면 번들에 안 섞이게)
+const LabApp = lazy(() => import('./lab/LabApp'));
+
 // 주소
 //   #/                               지도
 //   #/spot/<id>                      날짜·시간 고르기
 //   #/spot/<id>/<YYYY-MM-DD>/<시>     예상 이미지
+//   #/lab                            프롬프트 실험실 (비밀번호)
 type Route =
   | { view: 'map' }
   | { view: 'pick'; spotId: string }
-  | { view: 'result'; spotId: string; date: string; hour: number };
+  | { view: 'result'; spotId: string; date: string; hour: number }
+  | { view: 'lab' };
 
 function readRoute(): Route {
+  if (window.location.hash.startsWith('#/lab')) return { view: 'lab' };
   const m = window.location.hash.match(/^#\/spot\/([\w-]+)(?:\/(\d{4}-\d{2}-\d{2})\/(\d{1,2}))?/);
   if (!m) return { view: 'map' };
   if (m[2]) return { view: 'result', spotId: m[1], date: m[2], hour: Number(m[3]) };
@@ -44,6 +50,13 @@ export function App() {
     }
     window.scrollTo(0, 0);
   }, [route]);
+
+  if (route.view === 'lab')
+    return (
+      <Suspense fallback={null}>
+        <LabApp />
+      </Suspense>
+    );
 
   const spot = route.view === 'map' ? null : spots.find((s) => s.id === route.spotId);
 

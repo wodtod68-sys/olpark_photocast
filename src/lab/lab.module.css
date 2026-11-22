@@ -1,0 +1,572 @@
+/* 프롬프트 실험실. 공개 화면의 색·글꼴 토큰(base.css)을 그대로 쓰고, 새 색은 강조(--accent) 계열만 쓴다. */
+
+.lab {
+  min-height: 100svh;
+}
+
+.top {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
+  padding: 12px var(--gutter);
+  background: var(--paper);
+  border-bottom: 2px solid var(--ink);
+}
+
+.title {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.tab,
+.tabOn {
+  padding: 6px 14px;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tabOn {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.main {
+  padding: 16px var(--gutter) 64px;
+}
+
+/* 실험 탭: 3단 (좁으면 위아래로) */
+.three {
+  display: grid;
+  gap: 24px;
+}
+
+@media (min-width: 1180px) {
+  .three {
+    grid-template-columns: 320px minmax(0, 1fr) 400px;
+    align-items: start;
+  }
+  .three > .col {
+    position: sticky;
+    top: 72px;
+    max-height: calc(100svh - 88px);
+    overflow-y: auto;
+  }
+}
+
+.single {
+  max-width: 1400px;
+}
+
+.col {
+  min-width: 0;
+}
+
+.versus {
+  display: grid;
+  gap: 24px;
+  margin: 16px 0;
+}
+
+@media (min-width: 900px) {
+  .versus {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.h2 {
+  margin: 0 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--ink);
+  font-family: var(--serif);
+  font-size: 17px;
+}
+
+.h3 {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 18px 0 8px;
+  font-size: 14px;
+}
+
+.h4 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.field input,
+.field select,
+.filters select,
+.filters input,
+.tplBar select,
+.state select,
+.score select {
+  padding: 6px 8px;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 400;
+}
+
+.row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.muted {
+  color: var(--ink-2);
+  font-size: 13px;
+}
+
+.small {
+  font-size: 12px;
+}
+
+.note {
+  padding: 6px 10px;
+  background: var(--paper-deep);
+  font-size: 13px;
+}
+
+.error {
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.summary {
+  margin: 8px 0 2px;
+  font-size: 14px;
+}
+
+.baseThumb img {
+  display: block;
+  width: 100%;
+  max-height: 260px;
+  object-fit: contain;
+  background: var(--paper-deep);
+}
+
+.baseThumb figcaption {
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.state {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.state th,
+.state td {
+  padding: 5px 4px;
+  border-bottom: 1px solid var(--rule);
+  text-align: left;
+  vertical-align: top;
+}
+
+.state th {
+  width: 70px;
+  font-weight: 600;
+}
+
+.state select {
+  width: 100%;
+}
+
+.overridden td,
+.overridden th {
+  background: rgba(200, 64, 30, 0.08);
+}
+
+.details {
+  margin: 12px 0;
+  font-size: 13px;
+}
+
+.details summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.pre,
+.prompt,
+.diff {
+  overflow-x: auto;
+  padding: 10px;
+  background: var(--paper-deep);
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.pre {
+  max-height: 360px;
+}
+
+.diff {
+  white-space: pre;
+  max-height: 420px;
+}
+
+.add {
+  background: rgba(46, 125, 50, 0.16);
+}
+
+.del {
+  background: rgba(200, 64, 30, 0.16);
+}
+
+.hunk {
+  color: var(--ink-3);
+}
+
+.tplBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.tplBar select {
+  flex: 1 1 220px;
+}
+
+.block {
+  margin: 10px 0;
+  padding: 10px 12px;
+  border: 1px solid var(--rule);
+}
+
+.keyRow {
+  margin-bottom: 8px;
+}
+
+.keyHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.key,
+.keyChanged {
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.keyChanged {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.ta,
+.taChanged {
+  display: block;
+  width: 100%;
+  margin-top: 2px;
+  padding: 6px 8px;
+  border: 1px solid var(--rule);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.taChanged {
+  border-color: var(--accent);
+  background: rgba(200, 64, 30, 0.04);
+}
+
+.blockOut {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.btn,
+.btnGhost,
+.btnBig {
+  padding: 6px 12px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btnGhost {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.btnBig {
+  width: 100%;
+  padding: 12px;
+  font-size: 15px;
+}
+
+.btn:disabled,
+.btnGhost:disabled,
+.btnBig:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.link:disabled {
+  opacity: 0.4;
+}
+
+.cost {
+  margin: 4px 0 10px;
+  font-size: 14px;
+}
+
+.result {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ink);
+}
+
+.compare img {
+  display: block;
+  width: 100%;
+}
+
+.compareBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.seg {
+  display: inline-flex;
+}
+
+.segBtn,
+.segOn {
+  padding: 3px 8px;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.segOn {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.pair figcaption {
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.slider {
+  position: relative;
+}
+
+.over {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+}
+
+.divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--paper);
+  box-shadow: 0 0 0 1px var(--ink);
+}
+
+.range {
+  width: 100%;
+}
+
+.score {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin: 8px 0 14px;
+  font-size: 13px;
+}
+
+.score label {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.score textarea {
+  flex: 1 1 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--rule);
+  font: inherit;
+  font-size: 13px;
+}
+
+.confirm {
+  margin: 10px 0;
+  padding: 12px;
+  border: 2px solid var(--accent);
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table th,
+.table td {
+  padding: 6px;
+  border-bottom: 1px solid var(--rule);
+  text-align: left;
+  vertical-align: top;
+}
+
+.table thead th {
+  border-bottom: 1px solid var(--ink);
+}
+
+.picked td {
+  background: rgba(200, 64, 30, 0.08);
+}
+
+.thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.thumbs img {
+  display: block;
+  width: 72px;
+  height: 96px;
+  object-fit: cover;
+}
+
+.grid {
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.grid th,
+.grid td {
+  padding: 3px;
+  border: 1px solid var(--rule);
+  text-align: center;
+}
+
+.grid img {
+  display: block;
+  width: 96px;
+  height: 128px;
+  object-fit: cover;
+}
+
+.uploadBox {
+  max-width: 520px;
+  margin-bottom: 24px;
+}
+
+.panel {
+  display: block;
+  max-width: 100%;
+  margin: 6px 0 18px;
+}
+
+.login {
+  max-width: 360px;
+  margin: 12vh auto;
+  padding: 0 var(--gutter);
+}
+
+.login .title {
+  margin-bottom: 20px;
+}
+
+.users {
+  display: grid;
+  gap: 8px;
+  margin: 8px 0 16px;
+}

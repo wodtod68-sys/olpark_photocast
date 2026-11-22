@@ -1,116 +1,79 @@
-# 프롬프트 실험실 사용법 (임시판)
+# 프롬프트 실험실 사용법
 
-> 실험실 전용 화면(`#/lab`)은 아직 만드는 중이다. 그 전까지는 서버가 자동으로 만들어 주는
-> **API 화면(`/docs`)** 에서 버튼을 눌러 실험한다. 기능(조건 조회·프롬프트 미리보기·생성·점수·템플릿 fork/diff·그리드·실제 사진 채점)은 다 들어 있다.
+두 사람이 같은 조건에서 프롬프트 문장을 바꿔 가며 결과 이미지를 비교하는 곳.
+**같은 기록을 함께 보려면 한 사람(세환) 맥에서 서버를 띄우고, 다른 사람은 주소로 접속만 하면 된다.**
 
-## 0. 처음 한 번: 내 컴퓨터에서 띄우기
+## 1. 접속
 
+### 친구(접속만 하는 사람)
+1. 세환에게 **주소**(`https://….trycloudflare.com/#/lab`)와 **공용 비밀번호**를 따로 받는다.
+2. 폰이나 컴퓨터 브라우저로 주소를 열고 비밀번호 → 내 이름을 누른다. (14일 동안 로그인 유지)
+3. 주소는 세환이 서버를 다시 켤 때마다 바뀐다. 안 열리면 새 주소를 받는다.
+
+### 세환(서버를 띄우는 사람)
 ```bash
-git clone https://github.com/wodtod68-sys/olpark_photocast.git
-cd olpark_photocast
-git checkout feature/ai-forecast
-
-python3 -m venv server/.venv
-server/.venv/bin/pip install -r server/requirements.txt
-npm install
+cd ~/skyfinder/olpark_photocast
+bash scripts/start_lab.sh          # 빌드 → 서버 → 터널. 끝에 나오는 주소를 친구에게 보낸다
 ```
+- 처음 한 번: `bash scripts/install_cloudflared.sh` (터널 프로그램 받기)
+- 실행 중에는 맥이 잠들지 않는다(caffeinate). 노트북은 전원을 꽂아 두고 뚜껑을 열어 둔다.
+- 끄기: 그 터미널에서 Ctrl+C. 비밀번호는 `server/.env`의 `LAB_PASSCODE`.
+- 터널이 열려 있는 동안 공개 화면 생성 한도는 하루 10장으로 낮아진다.
 
-`server/.env` 파일을 만든다(**절대 커밋하지 말 것** — .gitignore에 있음). 값은 세환에게 메신저로 따로 받는다.
+### 각자 자기 컴퓨터에서 따로 돌리고 싶으면
+README의 "실행"대로 서버를 띄우고 http://localhost:5173/#/lab (개발 서버) 또는 `npm run build` 후 http://localhost:8000/#/lab.
+이때 실험 기록(DB)은 각자 따로 쌓인다. 템플릿만 공유하려면 "파일로 내보내기" → `lab_templates/`에 넣어 git 커밋 → 상대가 "가져오기".
 
-```
-GEMINI_API_KEY=(세환에게 받거나 Google AI Studio에서 직접 발급)
-LAB_PASSCODE=(공용 비밀번호, 세환에게 받기)
-LAB_USERS=세환,친구
-LAB_DAILY_LIMIT=20
-DAILY_LIMIT=30
-```
-
-실행:
-
-```bash
-server/.venv/bin/uvicorn server.app:app --reload --port 8000     # 서버
-npm run dev                                                      # 공개 화면 (선택, .env.local에 VITE_API_BASE= 한 줄)
-```
-
-- 공개 화면: http://localhost:5173 — 스팟 4곳(4경 추가), 기본 모델 Nano Banana Pro
-- **실험 화면: http://localhost:8000/docs**
-
-> 각자 자기 컴퓨터에서 띄우면 실험 기록(DB)은 각자 따로 쌓인다. 둘이 같은 기록을 보려면
-> 세환 맥에서 띄운 서버에 터널 주소로 접속하는 방식을 쓴다(세환이 주소를 보내 줌).
-
-## 1. 비용과 한도 (먼저 읽기)
+## 2. 비용과 한도 (먼저 읽기)
 
 | 모델 | 장당 | 비고 |
 |---|---|---|
-| Nano Banana Pro (`pro`, 기본) | **$0.134** | 생성에 15~20초 |
-| Nano Banana 2.1 (`nb2.1`) | $0.034 | 비교용 |
+| Nano Banana Pro (기본) | **$0.134** | 한 장에 15~20초 |
+| Nano Banana 2.1 | $0.034 | 비교용 |
 
-- 사람마다 하루 **20장**(한국 시간 자정 초기화). 같은 프롬프트·기준 사진·모델·샘플 번호는 캐시라 다시 눌러도 0원.
-- **미리보기(`/prompt`, `/conditions`)는 무료**. 문장을 충분히 다듬고 나서 생성한다.
-- 그리드 한 번 = 20장 = $2.68 = 하루 한도 전부. 둘이 상의하고 돌린다.
+- 사람마다 하루 **20장** (한국 시간 자정 초기화). 화면 오른쪽 위에 남은 수량이 보인다.
+- **프롬프트 미리보기는 무료**. 문장을 충분히 다듬고 나서 "생성"을 누른다.
+- 같은 프롬프트·기준 사진·모델·샘플 번호는 캐시라 다시 눌러도 0원.
+- 그리드 한 번 = 최대 20장 = 약 $2.68 = 하루 한도 전부. 둘이 상의하고 돌린다.
 
-## 2. /docs 쓰는 법
+## 3. 실험 탭 — 한 번에 하나만 바꿔 보기
 
-각 API를 펼쳐 **Try it out → 값 입력 → Execute**. 결과는 아래 Response body에 나온다.
+| 왼쪽: 조건 | 가운데: 템플릿 문장 | 오른쪽: 생성 |
+|---|---|---|
+| 스팟, 날짜·시각(과거도 가능), 상태표 덮어쓰기, 원데이터 | 이번 조건에서 **실제로 쓰이는 문장만** 블록 순서대로, 완성 프롬프트 미리보기 | 모델·장수, 예상 비용, 결과(기준 사진과 나란히/전후 슬라이더), 점수 |
 
-1. **입장** — `POST /api/lab/login`
-   `{"passcode": "공용비번", "user": "친구"}` → 브라우저에 로그인 쿠키가 저장되어 나머지 API가 열린다.
-2. **조건 보기** — `GET /api/lab/conditions` (spot=`naholo`, datetime=`2026-11-23T16:30`)
-   - `summary_ko`: 한 줄 요약, `data_state`: 데이터로 계산한 상태표, `raw`: 날씨 원데이터
-   - `block_keys`: 이번 조건에서 **실제로 쓰인 템플릿 문장의 경로**, `key_values`: 그 문장들
-3. **내 템플릿 만들기** — `POST /api/lab/templates/1/fork` `{"name": "친구 실험 1"}` → 응답의 `id`(예: 3)를 기억
-4. **문장 고치며 미리보기(무료)** — `POST /api/lab/prompt`
-   ```json
-   {"spot": "naholo", "datetime": "2026-11-23T16:30", "template_id": 3,
-    "overrides": {"assume": "clear"},
-    "edits": {"lighting.sun": "Sun position: low, about {elev} degrees, {where}, {frame}. Earlier it was {base_cmp}."}}
-   ```
-   `edits`의 키는 2번의 `block_keys`에 나온 경로를 그대로 쓴다. `{elev}` 같은 중괄호 자리는 지우지 말 것.
-5. **저장** — `PUT /api/lab/templates/3` `{"edits": {...같은 내용...}, "note": "해 위치 문장 짧게"}`
-   (YAML 문법·필수 키를 검사한다. shared와 남의 템플릿은 저장 불가 → fork해서 쓴다)
-6. **shared와 차이 보기** — `POST /api/lab/templates/diff` `{"a": 3}`
-7. **생성** — `POST /api/lab/generate` (4번 본문 + `"model": "pro", "n": 1`)
-   → `images[0].url`을 브라우저 주소창에 `http://localhost:8000` 뒤에 붙여 열면 이미지가 보인다.
-   기준 사진은 `http://localhost:8000/api/lab/files/base/naholo.jpg`.
-8. **점수 남기기** — `POST /api/lab/images/{id}/score`
-   `{"scores": {"cond": 4, "struct": 5, "nobeauty": 3}, "note": "그림자 방향 맞음, 하늘이 너무 진함"}`
-   - cond = 조건 반영, struct = 구조 보존(나무·건물 그대로인지), nobeauty = 미화 억제(과장 안 했는지), 각 1~5
-9. **기록 보기** — `GET /api/lab/experiments` (user·spot·template_id로 거르기)
+1. **내 템플릿 만들기**: 가운데 위 템플릿 목록에서 `★ shared`를 고른 채 **fork** → 이름 입력.
+2. **조건 고르기**: 스팟·날짜·시각. 날짜가 달라도 같은 조건으로 비교하려면 **"예보 대신 맑은 날로 가정"** 을 켠다.
+   흐림·비·안개·지면·수목 단계는 상태표의 드롭다운으로 덮어쓴다(덮어쓴 줄은 붉게 표시). "데이터 값으로 되돌리기"로 원래대로.
+3. **문장 고치기**: 가운데 편집창에서 문장을 고치면 0.4초 뒤 아래 미리보기가 바뀐다. 고친 문장은 붉은 테두리.
+   `{elev}`, `{where}` 같은 **중괄호 자리는 지우지 말 것**(데이터 값이 들어가는 자리).
+4. **저장**(메모에 "무엇을 왜 바꿨는지") → **shared와 diff**로 바뀐 줄 확인.
+5. **생성**(1장 권장) → 결과를 기준 사진과 비교 → **점수 3개 + 메모** 저장.
+   - 조건 반영: 시간·날씨가 그럴듯하게 바뀌었나
+   - 구조 보존: 나무·조형물·건물·길이 그대로인가 (새로 생기거나 사라지면 감점)
+   - 미화 억제: 과장(드라마틱한 하늘, 과한 채도)이 없나
+6. 괜찮으면 다른 스팟·시각에서도 한두 장 확인.
 
-### 덮어쓰기(overrides) — 날씨를 일부러 바꿔 보기
+## 4. 기록 탭
+- 사람·스팟·템플릿으로 거른다.
+- **두 실험을 체크하면 나란히 비교**: 프롬프트에서 서로 다른 줄이 초록으로 표시되고, 결과 이미지와 점수를 같이 본다.
 
-| 키 | 값 |
-|---|---|
-| `assume` | `"clear"` — 예보 대신 맑은 날로 가정 (날짜가 달라도 같은 조건으로 비교) |
-| `direct_sun` | `D0`(햇빛 없음) ~ `D3`(쨍함) |
-| `haze` | `H0`(맑은 공기) ~ `H4`(안개) |
-| `sky` | `clear, partly, high, low_many, overcast, golden, twilight, night, rain, fog` |
-| `precip` | `none`, `rain:light`, `rain:moderate`, `rain:heavy`, `snow:light` … |
-| `ground` | `["wet"]`, `["snow"]`, `["frost"]`, `["leaves"]` 조합 |
-| `trees` | `{"lawn": "green", "maple": "bare"}` — 단계 이름은 `server/forecast/config/phenology.yaml` |
+## 5. 그리드 탭 — 템플릿 전체 점검
+- 4곳 × 대표 조건 5개(07시 · 12시 · 16:30 골든 · 흐림 · 비)를 한 번에. 모두 "맑은 날 가정"에서 시작한다.
+- **비용 확인** → 칸별 조건 요약과 새로 만들 장수·비용 → **실행**(확인창). 진행 상황이 보이고, 끝나면 내 템플릿 행렬과 현재 shared 행렬이 나란히 나온다.
 
-예: 흐린 날 → `{"assume": "clear", "direct_sun": "D0", "sky": "overcast"}`,
-비 오는 날 → `{"assume": "clear", "precip": "rain:moderate", "ground": ["wet"]}`
+## 6. 실제 사진 탭 — 정답과 채점
+- 같은 자리·같은 방향에서 찍은 사진을 올린다(폰에서 바로, HEIC 원본 가능).
+- 사진의 촬영 시각 ±30분 안에 **덮어쓰기 없이** 만든 예측을 찾아 기준 사진에 맞춰 정렬하고 채점한다.
+  시각 정보가 없으면 직접 입력 칸이 나온다. "새로 만들기"를 켜면 없는 예측을 shared + 고른 템플릿으로 만든다(장당 $0.134).
+- 결과: 지면 ΔE(낮을수록 실제와 가까움)와 "기준 사진 그대로였을 때" ΔE, 비교 패널. 아래에 **템플릿별 평균 ΔE 순위**.
+- 팁: 사진을 찍기 전에 그 시각 예측을 실험 탭에서 미리 만들어 두면(맑은 날 가정은 끄고) 올리자마자 비교된다.
 
-## 3. 추천 실험 순서
+## 7. shared로 승격 (둘이 합의한 뒤에)
+가운데의 **shared로 승격…** → 바뀌는 줄(diff) 확인 → **승격 확인**.
+새 shared 버전이 생기고, **공개 화면도 그 버전으로 예측**한다. 예전 shared는 목록에 "(지난 shared)"로 남는다.
 
-1. **한 조건 고정**: 스팟 하나 + 시각 하나 + `assume: clear`로 shared 템플릿 결과를 1장 만든다(기준점).
-2. **문장 하나만 바꾼다**: 내 템플릿에서 블록 하나(예: `consequences`, `exposure`, `sky.*`)만 고쳐 미리보기 → 생성.
-3. **점수와 메모**를 남긴다. 무엇을 바꿨고 무엇이 나아졌는지 한 줄로.
-4. 괜찮으면 다른 스팟·시각(07시 / 12시 / 16:30 / 흐림 / 비)에서도 확인한다.
-5. 두 사람 모두 납득하면 그리드(`POST /api/lab/grid`, 먼저 `confirm: false`로 비용 확인 → `confirm: true`)로 4곳×5조건을 돌려 shared와 비교.
-6. 확실히 낫다면 `POST /api/lab/templates/{id}/promote` (`confirm: false`로 diff 확인 → `true`) — **공개 화면 기본값이 바뀌니 둘이 합의 후에**.
-
-## 4. 실제 사진으로 채점
-
-같은 자리에서 찍은 사진을 `POST /api/lab/real-photo`로 올린다(폰 원본 HEIC 그대로 가능).
-- 사진의 EXIF 촬영 시각으로 ±30분 안의 예측(덮어쓰기 없는 것)을 찾아 정렬·채점한다. 시각이 없으면 `taken_at`에 `2026-11-23T16:30`.
-- `generate_missing=true`면 없는 예측을 shared + 고른 템플릿으로 새로 만든다(장당 $0.134).
-- 결과: 지면 ΔE(낮을수록 좋음)와 "기준 사진 그대로 뒀을 때" ΔE 비교, 비교 패널 이미지.
-- `GET /api/lab/leaderboard`: 템플릿별 평균 ΔE 순위.
-
-## 5. 템플릿 문장 구조 한눈에
-
-`server/forecast/config/templates.yaml` (shared v1의 원본). 블록 순서:
-시간 변화 → 보존 → 태양·날씨 → 결과(빛·그림자) → 노출 → 하늘·대기 → 수목 → 지면 → 미화 금지.
-조건에 따라 쓰이는 문장이 달라지므로, 고치기 전에 2번(`block_keys`)으로 지금 어떤 문장이 쓰이는지 먼저 본다.
+## 8. 템플릿 문장 구조
+블록 순서: 시간 변화 → 보존 → 태양·날씨 → 결과(빛·그림자) → 노출 변화 → 하늘·대기 → 수목 → 지면 → 미화 금지.
+조건마다 쓰이는 문장이 다르다(예: 비가 오면 태양 위치·그림자 문장 대신 "Weather: it is raining…"). 실험 탭 가운데에는 지금 조건에서 쓰이는 문장만 나온다.
+규칙(빛 단계 경계, 노출 변화 계수)은 템플릿에 함께 들어 있는 `rules_yaml`, `delta_yaml`이고, 지금은 화면에서 문장만 고칠 수 있다.

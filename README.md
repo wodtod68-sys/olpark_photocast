@@ -48,6 +48,10 @@ KMA_SERVICE_KEY=
 AIRKOREA_SERVICE_KEY=
 # 하루 최대 생성 장수 (넘으면 429)
 DAILY_LIMIT=30
+# 프롬프트 실험실: 공용 비밀번호, 사용자 이름(쉼표), 사람당 하루 생성 수
+LAB_PASSCODE=...
+LAB_USERS=세환,친구
+LAB_DAILY_LIMIT=20
 EOF
 chmod 600 server/.env
 
@@ -77,14 +81,31 @@ npm run dev                    # http://localhost:5173
 기준 시각은 기준 사진 EXIF, 기준 날씨는 그 시각의 실제 값(Open-Meteo). 수목 단계는 `server/forecast/config/phenology.yaml`(11/22 관찰로 보정).
 4경 이름은 확정 전(임시 '4경'). 프롬프트 문장은 `server/forecast/config/templates.yaml`, 판단 규칙은 `rules.yaml`·`delta_rules.yaml`.
 
-## 프롬프트 실험실 (진행 중)
+## 프롬프트 실험실
 
 두 사람이 프롬프트 템플릿을 fork해 고쳐 보며 결과 이미지를 비교하는 곳. 사용법은 **[LAB_GUIDE.md](LAB_GUIDE.md)**.
 
-- API: `server/lab/` (`/api/lab/...`, 공용 비밀번호 `LAB_PASSCODE` + 사용자 `LAB_USERS`), 저장 `server/lab.db` + `server/lab_data/`(커밋 안 함)
-- 지금은 `http://localhost:8000/docs` 에서 실험한다. 전용 화면(`#/lab`)은 만드는 중.
-- 기본 모델: Nano Banana Pro(`gemini-3-pro-image`, 장당 $0.134). 사용자별 하루 20장(`LAB_DAILY_LIMIT`).
-- 공개 화면 예측은 현재 shared 템플릿 + 아래 기준 사진을 쓴다. 캐시 키에 모델 id와 기준 사진 해시가 들어간다.
+- 화면: `#/lab` (`src/lab/`, 공개 화면과 따로 불러옴). 탭: 실험 · 기록 · 그리드 · 실제 사진
+- API: `server/lab/` (`/api/lab/...`). 입장 = 공용 비밀번호 `LAB_PASSCODE` + 사용자 `LAB_USERS`
+- 저장: `server/lab.db`(SQLite) + `server/lab_data/`(생성 이미지 JPEG 90·긴 변 1536, 실제 사진, 비교 패널) — 커밋 안 함
+- 기본 모델 Nano Banana Pro(`gemini-3-pro-image`, 장당 $0.134). 사용자별 하루 20장(`LAB_DAILY_LIMIT`)
+- 공개 화면 예측은 현재 shared 템플릿 + 아래 기준 사진을 쓴다. 공개 캐시 키에 모델 id와 기준 사진 해시가 들어간다.
+- 같이 쓰기: `bash scripts/start_lab.sh` → Cloudflare quick tunnel 주소를 친구에게 (처음 한 번 `bash scripts/install_cloudflared.sh`)
+
+### 나중에 클라우드(Cloud Run + Cloud Storage)로 옮길 때 바꿀 부분 (지금은 옮기지 않음)
+
+| 지금 (맥 + 터널) | 클라우드 | 바꿀 곳 |
+|---|---|---|
+| `server/lab.db` SQLite 파일 | Cloud Run은 디스크가 휘발성 → **Cloud SQL(PostgreSQL)** 또는 Firestore | `server/lab/db.py` (연결·SQL 방언: `ON CONFLICT`, `AUTOINCREMENT`) |
+| `server/lab_data/`, `server/cache/` 로컬 파일 | **Cloud Storage 버킷** (images/, real/, panels/, public-cache/) | `core.save_jpeg`, `store_real`, `score_against_real`, `app.py`의 캐시 읽기·쓰기 → GCS 클라이언트. 이미지는 서명 URL로 내주기 |
+| `server/.env`의 키·비밀번호 | **Secret Manager** → Cloud Run 환경변수로 주입 | `forecast/common.load_env`는 그대로(환경변수 우선) |
+| `server/.lab_secret` 파일 | `LAB_SECRET` 환경변수(Secret Manager) — 인스턴스가 여러 개여도 같은 쿠키 서명 | 설정만 |
+| 프로세스 메모리의 잠금·그리드 작업 상태(`_jobs`, `_key_locks`) | 인스턴스가 여러 개면 공유 안 됨 → 최대 인스턴스 1로 시작하거나, 작업 상태를 DB에, 그리드는 **Cloud Tasks** | `core.grid_run`, `grid_job` |
+| 하루 사용량(`usage` 표, `cache/usage.json`) | DB 한 곳으로 통일 | `app.py` 공개 사용량 → DB |
+| Open-Meteo 응답 캐시 `server/outputs/forecast/cache` | /tmp(인스턴스 수명) 또는 GCS | `forecast/common.http_json` |
+| `dist/`를 FastAPI가 내줌 | 그대로 같은 컨테이너에 넣거나, 정적 파일은 Firebase Hosting/버킷 | Dockerfile에서 `npm run build` 후 복사 |
+| CORS localhost만 | 배포 도메인 추가, 쿠키 `secure=True` | `app.py`, `lab/routes.py` 로그인 쿠키 |
+| 요청 시간 | 생성 15~20초 → Cloud Run 요청 타임아웃 기본 300초면 충분. 그리드는 백그라운드 작업으로 | |
 
 ## 기준 사진 (2026-11-22 답사)
 

@@ -4,6 +4,7 @@
 """
 from __future__ import annotations
 import base64
+import re
 import hashlib
 import hmac
 import secrets
@@ -211,6 +212,36 @@ def diff(a: int = Body(...), b: int | None = Body(None), edits: dict | None = Bo
         return core.diff_texts(core.template_texts(ta, edits), core.template_texts(tb), ta["name"], tb["name"])
     except (ValueError, KeyError, IndexError) as e:
         raise HTTPException(400, str(e))
+
+
+@router.get("/templates/{tid}/export")
+def export_template(tid: int, user: str = Depends(current_user)):
+    """git으로 주고받을 수 있는 YAML 묶음 1개 (lab_templates/ 폴더에 커밋하면 상대가 가져오기로 불러온다)."""
+    t = core.get_template(tid)
+    import yaml as _y
+    bundle = {"name": t["name"], "owner": t["owner"], "note": t["note"], "exported_at": db.now(),
+              "templates_yaml": t["templates_yaml"], "rules_yaml": t["rules_yaml"], "delta_yaml": t["delta_yaml"]}
+    text = _y.safe_dump(bundle, allow_unicode=True, sort_keys=False, width=4096)
+    fname = re.sub(r"[^0-9A-Za-z가-힣_-]+", "_", t["name"]) + ".labtemplate.yaml"
+    from urllib.parse import quote
+    return Response(text, media_type="text/yaml; charset=utf-8",
+                    headers={"Content-Disposition": f"attachment; filename*=UTF-8''{quote(fname)}"})
+
+
+@router.post("/templates/import")
+def import_template(bundle: str = Body(..., embed=True), user: str = Depends(current_user)):
+    import yaml as _y
+    try:
+        b = _y.safe_load(bundle)
+        texts = {k: b[k] for k in ("templates_yaml", "rules_yaml", "delta_yaml")}
+        core.validate(texts)
+    except Exception as e:
+        raise HTTPException(400, f"템플릿 파일을 읽지 못했어요: {str(e)[:200]}")
+    nid = db.ex("INSERT INTO templates(name, owner, parent_id, templates_yaml, rules_yaml, delta_yaml, note, is_shared,"
+                " created_at) VALUES (?,?,?,?,?,?,?,0,?)", (f"{b.get('name', '가져온 템플릿')} (가져옴)", user, None,
+                texts["templates_yaml"], texts["rules_yaml"], texts["delta_yaml"],
+                f"{b.get('owner', '?')}가 내보낸 파일에서 가져옴. {b.get('note') or ''}".strip(), db.now()))
+    return _tpl_row(core.get_template(nid))
 
 
 @router.post("/templates/{tid}/promote")

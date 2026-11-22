@@ -1,5 +1,6 @@
 """경로, .env, 설정 파일, 스팟 로더, 캐시 HTTP."""
 from __future__ import annotations
+import contextvars
 import hashlib
 import json
 import logging
@@ -45,8 +46,36 @@ def env_key(name: str) -> str | None:
     return v if v else None
 
 
+# 실험실(server/lab)에서 편집 중인 설정을 디스크에 쓰지 않고 요청 단위로 주입한다.
+# {"templates.yaml": dict, "rules.yaml": dict, "delta_rules.yaml": dict} 중 일부.
+_CONFIG_OVERRIDE: contextvars.ContextVar[dict | None] = contextvars.ContextVar("forecast_config", default=None)
+_FILE_CACHE: dict[str, tuple[float, dict]] = {}
+
+
+def set_config_override(cfg: dict | None):
+    """반환한 토큰으로 reset_config_override(token) 해서 되돌린다."""
+    return _CONFIG_OVERRIDE.set(cfg)
+
+
+def reset_config_override(token) -> None:
+    _CONFIG_OVERRIDE.reset(token)
+
+
 def load_yaml(name: str) -> dict:
-    return yaml.safe_load((CONFIG / name).read_text(encoding="utf-8"))
+    ov = _CONFIG_OVERRIDE.get()
+    if ov and name in ov:
+        return ov[name]
+    p = CONFIG / name
+    mt = p.stat().st_mtime
+    hit = _FILE_CACHE.get(name)
+    if hit is None or hit[0] != mt:
+        hit = (mt, yaml.safe_load(p.read_text(encoding="utf-8")))
+        _FILE_CACHE[name] = hit
+    return hit[1]
+
+
+def rules() -> dict:
+    return load_yaml("rules.yaml")
 
 
 def expand(p: str | None) -> Path | None:

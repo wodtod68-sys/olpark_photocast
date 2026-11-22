@@ -1,8 +1,8 @@
 """Gemini 이미지 편집 (google-genai SDK, GEMINI_API_KEY).
 
 모델 ID는 Google AI Studio 문서(aistudio.google.com/docs/image-generation, 2026-11 확인) 기준:
-  nb2.1 = gemini-nano-banana-2.1 (Nano Banana 2.1, 기본) — 장당 $0.034
-  pro   = gemini-3-pro-image      (Nano Banana Pro)       — 장당 $0.134
+  pro   = gemini-3-pro-image      (Nano Banana Pro, 기본 — 2026-11-22 결정) — 장당 $0.134
+  nb2.1 = gemini-nano-banana-2.1 (Nano Banana 2.1)                         — 장당 $0.034
 키가 생기면 `python -m forecast.generate --list-models`로 실제 계정에서 보이는 ID를 확인할 것.
 """
 from __future__ import annotations
@@ -48,45 +48,58 @@ def client():
     return genai.Client(api_key=key)
 
 
-def generate(prompt: str, base_path: Path, out_dir: Path, model: str, n: int = 1,
-             ref_path: Path | None = None) -> list[dict]:
-    """n장 생성. 각 호출은 실패 시 1회만 재시도. gen_<i>.png(1K 원본)와 gen_<i>_orig.png(기준 사진 크기)를 저장."""
+def _request(cl, prompt: str, base: Image.Image, ref: Image.Image | None, model_id: str):
     from google.genai import types
-    m = model_info(model)
-    base = Image.open(base_path).convert("RGB")
-    contents = [prompt, base]
-    if ref_path:
-        contents.append(Image.open(ref_path).convert("RGB"))
+    contents = [prompt, base] + ([ref] if ref is not None else [])
     cfg = types.GenerateContentConfig(
         response_modalities=["IMAGE"],
         image_config=types.ImageConfig(aspect_ratio=closest_aspect(*base.size), image_size="1K"))
+    resp = cl.models.generate_content(model=model_id, contents=contents, config=cfg)
+    img, text = None, []
+    for part in resp.candidates[0].content.parts:
+        if getattr(part, "inline_data", None) and part.inline_data.data:
+            img = part.inline_data.data
+        elif getattr(part, "text", None):
+            text.append(part.text)
+    if img is None:
+        raise RuntimeError(f"이미지 없이 응답: {' '.join(text)[:200]}")
+    return img, " ".join(text)[:500]
+
+
+def generate_one(prompt: str, base_path: Path, model: str, ref_path: Path | None = None) -> dict:
+    """1장. 실패 시 1회만 재시도. 반환: image(bytes) 또는 error, attempts(실제 호출 수), seconds, text."""
+    m = model_info(model)
+    base = Image.open(base_path).convert("RGB")
+    ref = Image.open(ref_path).convert("RGB") if ref_path else None
     cl = client()
+    for attempt in (1, 2):
+        t0 = time.time()
+        try:
+            img, text = _request(cl, prompt, base, ref, m["id"])
+            return dict(image=img, text=text, attempts=attempt, seconds=round(time.time() - t0, 1), model=m["id"])
+        except Exception as ex:
+            log.warning(f"생성 시도 {attempt} 실패: {ex}")
+            if attempt == 2:
+                return dict(image=None, error=str(ex)[:500], attempts=attempt, model=m["id"])
+
+
+def generate(prompt: str, base_path: Path, out_dir: Path, model: str, n: int = 1,
+             ref_path: Path | None = None) -> list[dict]:
+    """n장 생성. gen_<i>.png(1K 원본)와 gen_<i>_orig.png(기준 사진 크기)를 저장."""
+    base_size = Image.open(base_path).size
     results = []
     for i in range(n):
-        for attempt in (1, 2):
-            t0 = time.time()
-            try:
-                resp = cl.models.generate_content(model=m["id"], contents=contents, config=cfg)
-                img, text = None, []
-                for part in resp.candidates[0].content.parts:
-                    if getattr(part, "inline_data", None) and part.inline_data.data:
-                        img = part.inline_data.data
-                    elif getattr(part, "text", None):
-                        text.append(part.text)
-                if img is None:
-                    raise RuntimeError(f"이미지 없이 응답: {' '.join(text)[:200]}")
-                p = out_dir / f"gen_{i}.png"
-                p.write_bytes(img)
-                g = Image.open(p).convert("RGB")
-                g.resize(base.size, Image.LANCZOS).save(out_dir / f"gen_{i}_orig.png")
-                results.append(dict(file=p.name, file_orig=f"gen_{i}_orig.png", size=list(g.size), attempt=attempt,
-                                    seconds=round(time.time() - t0, 1), text=" ".join(text)[:500]))
-                log.info(f"생성 {i + 1}/{n}: {p} {g.size} ({time.time() - t0:.0f}s)")
-                break
-            except Exception as ex:
-                log.warning(f"생성 {i + 1}/{n} 시도 {attempt} 실패: {ex}")
-                if attempt == 2:
-                    results.append(dict(file=None, error=str(ex)[:500], attempt=attempt))
+        r = generate_one(prompt, base_path, model, ref_path)
+        if r.get("image") is None:
+            results.append(dict(file=None, error=r["error"], attempt=r["attempts"]))
+            continue
+        p = out_dir / f"gen_{i}.png"
+        p.write_bytes(r["image"])
+        g = Image.open(p).convert("RGB")
+        g.resize(base_size, Image.LANCZOS).save(out_dir / f"gen_{i}_orig.png")
+        results.append(dict(file=p.name, file_orig=f"gen_{i}_orig.png", size=list(g.size), attempt=r["attempts"],
+                            seconds=r["seconds"], text=r["text"]))
+        log.info(f"생성 {i + 1}/{n}: {p} {g.size} ({r['seconds']:.0f}s)")
     return results
 
 

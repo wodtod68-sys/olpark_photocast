@@ -33,6 +33,16 @@ export const MOCK_SPOTS: Spot[] = [
     photo: { src: 'images/rose.jpg', position: '50% 45%', credit: PHOTO_CREDIT },
     map: { x: 2262, y: 1545 },
   },
+  {
+    // 이름은 확정 전(임시 '4경'). 지도 위치는 안내 지도에 인쇄된 4경 핀 자리
+    id: 'gyeong4',
+    no: 4,
+    name: '4경',
+    scene: '4경',
+    description: '잔디 광장 한가운데 콘크리트 기둥 두 개 위로 녹슨 금속판이 얹힌 조형물. 돌길이 조형물로 곧게 이어진다.',
+    photo: { src: 'images/gyeong4.jpg', position: '50% 45%', credit: '직접 촬영 (2026-11-22)' },
+    map: { x: 1056, y: 1330 },
+  },
 ];
 
 // ── 가짜 행사 일정 ─────────────────────────────────────────────
@@ -53,6 +63,7 @@ const SPOT_TRAITS: Record<string, { base: number; event: number }> = {
   naholo: { base: 1.0, event: 0.3 },
   wild: { base: 0.8, event: 0.5 },
   rose: { base: 0.75, event: 0.9 },
+  gyeong4: { base: 0.7, event: 0.4 },
 };
 
 // 시간대별 기본 인파 (06~21시)
@@ -171,6 +182,10 @@ const MOTIFS: Record<string, (t: typeof TONES.day) => string> = {
       const a = (i / 13) * Math.PI;
       return `<circle cx="${600 + Math.cos(a) * 430}" cy="${660 - Math.sin(a) * 80}" r="26"/>`;
     }).join('')}</g>`,
+  gyeong4: (t) => `
+    <rect x="540" y="250" width="50" height="280" fill="${t.shape}"/>
+    <rect x="610" y="250" width="50" height="280" fill="${t.shape}"/>
+    <path d="M530 250 L590 150 L610 150 L670 250Z" fill="${t.shape}"/>`,
 };
 
 function placeholder(spot: Spot, datetime: string) {

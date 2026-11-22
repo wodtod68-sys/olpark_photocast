@@ -9,9 +9,8 @@ from datetime import datetime, timedelta, timezone
 import numpy as np
 import pandas as pd
 import pvlib
-from .common import load_yaml, env_key, http_json, log
+from .common import load_yaml, rules, env_key, http_json, log
 
-RULES = load_yaml("rules.yaml")
 UTC = timezone.utc
 
 OM_VARS = ["cloud_cover", "cloud_cover_low", "cloud_cover_mid", "cloud_cover_high", "relative_humidity_2m",
@@ -29,7 +28,7 @@ def sun_geometry(dt: datetime, spot: dict) -> dict:
     az = float(sp["azimuth"].iloc[0])
     rel = wrap180(az - spot["camera_bearing_deg"])          # 음수 = 왼쪽
     a = abs(rel)
-    pb = RULES["direction"]["position_bounds"]
+    pb = rules()["direction"]["position_bounds"]
     side = "left" if rel < 0 else "right"
     if a < pb["ahead"]:
         pos = "ahead"
@@ -41,7 +40,7 @@ def sun_geometry(dt: datetime, spot: dict) -> dict:
         pos = f"behind_{side}"
     else:
         pos = "behind"
-    d = RULES["direction"]
+    d = rules()["direction"]
     lit = "back-lit" if a <= d["back_max"] else "front-lit" if a >= d["front_min"] else f"side-{side}"
     half_h, half_v = spot["hfov_deg"] / 2, spot["vfov_deg"] / 2
     in_frame = bool(a <= half_h and spot["pitch_deg"] - half_v <= elev <= spot["pitch_deg"] + half_v and elev > -1)
@@ -98,7 +97,7 @@ def kma_forecast(spot: dict, dt: datetime) -> pd.DataFrame | None:
                   base_date=bdt.strftime("%Y%m%d"), base_time=bdt.strftime("%H00"), nx=nx, ny=ny)
     try:
         js = http_json("http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst", params,
-                       ttl_s=RULES["sources"]["forecast_cache_ttl_s"])
+                       ttl_s=rules()["sources"]["forecast_cache_ttl_s"])
         items = js["response"]["body"]["items"]["item"]
     except Exception as ex:
         log.warning(f"기상청 단기예보 실패 → 건너뜀: {ex}")
@@ -107,7 +106,7 @@ def kma_forecast(spot: dict, dt: datetime) -> pd.DataFrame | None:
     df["t"] = pd.to_datetime(df.fcstDate + df.fcstTime, format="%Y%m%d%H%M").dt.tz_localize(spot["tz"]).dt.tz_convert(UTC)
     w = df.pivot_table(index="t", columns="category", values="fcstValue", aggfunc="first")
     out = pd.DataFrame(index=w.index)
-    sky_map = RULES["kma_sky_to_cover"]
+    sky_map = rules()["kma_sky_to_cover"]
     out["cloud_cover"] = w["SKY"].astype(int).map(sky_map) if "SKY" in w else np.nan
     out["relative_humidity_2m"] = pd.to_numeric(w.get("REH"), errors="coerce")
     out["temperature_2m"] = pd.to_numeric(w.get("TMP"), errors="coerce")
@@ -136,7 +135,7 @@ def om_forecast(spot: dict, dt: datetime) -> pd.DataFrame | None:
         js = http_json("https://api.open-meteo.com/v1/forecast",
                        dict(latitude=spot["lat"], longitude=spot["lon"], hourly=",".join(OM_VARS),
                             start_date=d0, end_date=d1, timezone="UTC", wind_speed_unit="ms"),
-                       ttl_s=RULES["sources"]["forecast_cache_ttl_s"])
+                       ttl_s=rules()["sources"]["forecast_cache_ttl_s"])
         return _om_frame(js)
     except Exception as ex:
         log.warning(f"Open-Meteo 예보 실패 → 건너뜀: {ex}")
@@ -181,7 +180,7 @@ def at_time(h: pd.DataFrame, dt: datetime) -> dict:
 
 def weather(spot: dict, dt: datetime) -> dict:
     """소스 우선순위: 1) 기상청 단기예보(한국·72시간 이내 미래·키 있음) 2) Open-Meteo 예보 3) 아카이브(과거)."""
-    S = RULES["sources"]
+    S = rules()["sources"]
     now = datetime.now(UTC)
     hours_ahead = (dt.astimezone(UTC) - now).total_seconds() / 3600
     src = {}
@@ -240,7 +239,7 @@ def air_quality(spot: dict, dt: datetime) -> dict:
                         m = re.search(rf"{region}\s*:\s*(\S+?)(,|$)", it.get("informGrade", ""))
                         if m:
                             g = m.group(1)
-                            return dict(pm25=float(RULES["airkorea_grade_pm25"][g]), pm10=None,
+                            return dict(pm25=float(rules()["airkorea_grade_pm25"][g]), pm10=None,
                                         source=f"airkorea_forecast({region} {g})")
         except Exception as ex:
             log.warning(f"에어코리아 실패 → Open-Meteo로: {ex}")

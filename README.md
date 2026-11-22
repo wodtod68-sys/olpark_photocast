@@ -71,8 +71,23 @@ npm run dev                    # http://localhost:5173
 - `.env.local`이 없으면(VITE_API_BASE 미설정) 서버를 부르지 않고 예전처럼 자리표시 이미지만 쓴다.
 - 배포 시에는 `VITE_API_BASE=https://<서버 주소>`로 빌드한다(`npm run build`). 서버 CORS는 지금 localhost:5173만 허용하므로 배포 주소를 `server/app.py`에 추가해야 한다.
 
-## 스팟 설정 (임시)
+## 스팟 설정
 
-`server/forecast/spots/{naholo,wild,rose}.yaml` — 좌표·카메라 방위·화각·수종이 **임시 추정값**이다(파일 주석 참고).
-기준 사진은 `public/images/<id>.jpg`, 촬영 시각을 몰라 "맑은 날 한낮"으로 가정했다.
-답사 사진과 실측값으로 바꾸면 그대로 반영된다. 프롬프트 문장은 `server/forecast/config/templates.yaml`, 판단 규칙은 `rules.yaml`·`delta_rules.yaml`.
+`server/forecast/spots/{rose,wild,gyeong4,naholo}.yaml` — 좌표·카메라 방위는 2026-11-22 현장 실측, 화각은 아이폰 1x 세로(50°/65°).
+기준 시각은 기준 사진 EXIF, 기준 날씨는 그 시각의 실제 값(Open-Meteo). 수목 단계는 `server/forecast/config/phenology.yaml`(11/22 관찰로 보정).
+4경 이름은 확정 전(임시 '4경'). 프롬프트 문장은 `server/forecast/config/templates.yaml`, 판단 규칙은 `rules.yaml`·`delta_rules.yaml`.
+
+## 프롬프트 실험실 (진행 중)
+
+두 사람이 프롬프트 템플릿을 fork해 고쳐 보며 결과 이미지를 비교하는 곳. 사용법은 **[LAB_GUIDE.md](LAB_GUIDE.md)**.
+
+- API: `server/lab/` (`/api/lab/...`, 공용 비밀번호 `LAB_PASSCODE` + 사용자 `LAB_USERS`), 저장 `server/lab.db` + `server/lab_data/`(커밋 안 함)
+- 지금은 `http://localhost:8000/docs` 에서 실험한다. 전용 화면(`#/lab`)은 만드는 중.
+- 기본 모델: Nano Banana Pro(`gemini-3-pro-image`, 장당 $0.134). 사용자별 하루 20장(`LAB_DAILY_LIMIT`).
+- 공개 화면 예측은 현재 shared 템플릿 + 아래 기준 사진을 쓴다. 캐시 키에 모델 id와 기준 사진 해시가 들어간다.
+
+## 기준 사진 (2026-11-22 답사)
+
+`server/base_photos/{rose,wild,gyeong4,naholo}.jpg` — 아이폰 원본에서 만든 전송용 사본(긴 변 1536px, 촬영 시각 EXIF만 남기고 GPS 제거).
+원본을 새로 찍으면 `~/skyfinder/basephotos/`에 넣고 `server/.venv/bin/python -u scripts/import_basephotos.py` (촬영 순서 9경·8경·4경·6경).
+스팟 좌표·방위는 `server/forecast/spots/*.yaml` (현장 실측).

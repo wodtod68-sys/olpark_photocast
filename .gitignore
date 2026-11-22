@@ -13,3 +13,8 @@ server/outputs/
 server/.venv/
 __pycache__/
 *.pyc
+# 프롬프트 실험실 — DB·생성 이미지·서명 키는 커밋하지 않는다
+server/lab.db*
+server/lab_data/
+server/.lab_secret
+# server/base_photos/ 는 커밋한다 (전송용 사본, GPS 제거됨 — 친구도 예측을 돌릴 수 있게)

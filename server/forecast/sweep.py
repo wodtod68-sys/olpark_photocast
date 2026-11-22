@@ -35,7 +35,7 @@ def main():
     ap.add_argument("--date", required=True, help="YYYY-MM-DD (스팟 현지)")
     ap.add_argument("--times", required=True, help='"07:00,10:00,13:00"')
     ap.add_argument("--n", type=int, default=1)
-    ap.add_argument("--model", default="nb2.1")
+    ap.add_argument("--model", default="pro")
     ap.add_argument("--ref", default=None)
     ap.add_argument("--max-calls", type=int, default=5)
     ap.add_argument("--dry-run", action="store_true")

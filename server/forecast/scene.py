@@ -2,30 +2,29 @@
 임계값은 config/rules.yaml, 노출 변화 계수는 config/delta_rules.yaml."""
 from __future__ import annotations
 import math
-from .common import load_yaml
+from .common import load_yaml, rules
 
-RULES = load_yaml("rules.yaml")
 
 
 def light_stage(elev: float) -> dict:
-    for s in RULES["light_stages"]:
+    for s in rules()["light_stages"]:
         if elev < s["max_elev"]:
             return dict(stage=s["stage"], label=s["label"])
-    return dict(stage=RULES["light_stages"][-1]["stage"], label=RULES["light_stages"][-1]["label"])
+    return dict(stage=rules()["light_stages"][-1]["stage"], label=rules()["light_stages"][-1]["label"])
 
 
 def direct_stage(total, low) -> dict:
     total = 0.0 if total is None else total
     low = total if low is None else low           # 층 자료가 없으면 총량으로 대신
-    for s in RULES["direct_sun"]:
+    for s in rules()["direct_sun"]:
         if total < s["total_max"] and low < s["low_max"]:
             return dict(stage=s["stage"], label=s["label"])
-    last = RULES["direct_sun"][-1]
+    last = rules()["direct_sun"][-1]
     return dict(stage=last["stage"], label=last["label"])
 
 
 def haze_stage(pm25, rh, precip_3h, visibility, wind, elev) -> dict:
-    H = RULES["haze"]
+    H = rules()["haze"]
     if visibility is not None and visibility < H["fog_visibility_m"]:
         return dict(stage=4, basis=f"visibility {visibility:.0f} m < {H['fog_visibility_m']}")
     if (visibility is None and rh is not None and rh >= H["fog_rh"] and (wind or 0) <= H["fog_wind_max"]
@@ -47,7 +46,7 @@ def haze_stage(pm25, rh, precip_3h, visibility, wind, elev) -> dict:
 
 
 def sky_type(w: dict, light: str, precip: str, haze: int) -> str:
-    S = RULES["sky_type"]
+    S = rules()["sky_type"]
     tot = w.get("cloud_cover") or 0
     low, mid, high = (w.get(k) for k in ("cloud_cover_low", "cloud_cover_mid", "cloud_cover_high"))
     if haze >= 4:
@@ -70,10 +69,10 @@ def sky_type(w: dict, light: str, precip: str, haze: int) -> str:
 
 
 def precip_form(w: dict) -> dict:
-    P = RULES["precip"]
+    P = rules()["precip"]
     pty = w.get("kma_pty")
     if pty is not None and not math.isnan(pty) and int(pty) > 0:
-        form = RULES["kma_pty"].get(int(pty), "rain")
+        form = rules()["kma_pty"].get(int(pty), "rain")
         form = "snow" if "snow" in form else "rain"
     elif (w.get("snowfall") or 0) > 0.05:
         form = "snow"
@@ -87,14 +86,14 @@ def precip_form(w: dict) -> dict:
 
 
 def ground_state(w: dict, light: str, trees: list[dict]) -> list[str]:
-    P, F = RULES["precip"], RULES["frost"]
+    P, F = rules()["precip"], rules()["frost"]
     g = []
     if (w.get("snow_depth") or 0) > 0.005 or (w.get("snowfall_3h") or 0) > 0.2:
         g.append("snow")
     elif (w.get("precip_3h") or 0) >= P["wet_ground_mm_3h"]:
         g.append("wet")
     t, rh = w.get("temperature_2m"), w.get("relative_humidity_2m")
-    order = [s["stage"] for s in RULES["light_stages"]]
+    order = [s["stage"] for s in rules()["light_stages"]]
     if (t is not None and rh is not None and t <= F["temp_max_c"] and rh >= F["rh_min"]
             and order.index(light) <= order.index(F["max_light_stage"]) and "snow" not in g):
         g.append("frost")
@@ -106,7 +105,7 @@ def ground_state(w: dict, light: str, trees: list[dict]) -> list[str]:
 def visibility_km(pm25, rh, visibility_m) -> tuple[float, str]:
     if visibility_m is not None:
         return visibility_m / 1000, "forecast_visibility"
-    V = RULES["visibility_model"]
+    V = rules()["visibility_model"]
     rhc = min(rh if rh is not None else 50, V["rh_cap"])
     beta = V["rayleigh_per_km"] + V["k_pm_per_km"] * (pm25 if pm25 is not None else 20) * (1 - rhc / 100) ** (-V["gamma"])
     return 3.912 / beta, "koschmieder(pm25,rh)"
@@ -116,7 +115,7 @@ def landmark_states(spot: dict, vis_km: float) -> list[dict]:
     out = []
     for lm in spot.get("landmarks", []):
         c = math.exp(-3.912 * lm["distance_km"] / max(vis_km, 0.01))
-        st = next(s["stage"] for s in RULES["visibility_model"]["contrast_stages"] if c >= s["min"])
+        st = next(s["stage"] for s in rules()["visibility_model"]["contrast_stages"] if c >= s["min"])
         out.append(dict(name=lm["name"], distance_km=lm["distance_km"], apparent_contrast=round(c, 3), visibility=st))
     return out
 
@@ -193,3 +192,58 @@ def _match(pattern: str, key: str) -> bool:
         if any(x != "*" and x != y for x, y in zip(p.split("->"), k.split("->"))):
             return False
     return True
+
+
+# ---------------- 덮어쓰기 (실험실) ----------------
+OVERRIDABLE = ("direct_sun", "haze", "sky", "precip", "ground", "trees")
+
+
+def override_choices(state: dict) -> dict:
+    """덮어쓰기 드롭다운 선택지. 수목은 그 수종의 단계 목록."""
+    R = rules()
+    cal = load_yaml("phenology.yaml")["species"]
+    return dict(
+        assume=["clear"],
+        direct_sun=[s["stage"] for s in R["direct_sun"]],
+        haze=[f"H{i}" for i in range(5)],
+        sky=["clear", "partly", "high", "low_many", "overcast", "golden", "twilight", "night", "rain", "fog"],
+        precip=["none", "rain:light", "rain:moderate", "rain:heavy", "snow:light", "snow:moderate", "snow:heavy"],
+        ground=["wet", "snow", "frost", "leaves"],
+        trees={t["species"]: [s["name"] for s in cal[t["species"]]["stages"]] for t in state["trees"]},
+    )
+
+
+def apply_overrides(state: dict, ov: dict | None) -> dict:
+    """상태표 일부를 덮어쓴 사본. ov 예: {"direct_sun": "D0", "haze": "H2", "sky": "overcast",
+    "precip": "rain:light", "ground": ["wet"], "trees": {"lawn": "green"}}. 빛·방향은 시각으로만 바꾼다."""
+    import copy
+    if not ov:
+        return state
+    s = copy.deepcopy(state)
+    R = rules()
+    if ov.get("direct_sun"):
+        lab = next((d["label"] for d in R["direct_sun"] if d["stage"] == ov["direct_sun"]), "")
+        s["direct_sun"].update(stage=ov["direct_sun"], label=lab + " (override)")
+    if ov.get("haze"):
+        s["haze"].update(stage=ov["haze"], level=int(ov["haze"][1]), basis="override")
+    if ov.get("precip"):
+        form, _, inten = ov["precip"].partition(":")
+        s["precip"] = dict(form=form, intensity=(inten or "moderate") if form != "none" else None,
+                           mm_h=s["precip"].get("mm_h"))
+        if form != "none" and not ov.get("direct_sun"):
+            s["direct_sun"].update(stage="D0", label="no direct sun (precipitation override)")
+        if form != "none" and not ov.get("sky"):
+            s["sky"] = "rain"
+    if ov.get("sky"):
+        s["sky"] = ov["sky"]
+    if ov.get("ground") is not None:
+        s["ground"] = list(ov["ground"])
+    if ov.get("trees"):
+        cal = load_yaml("phenology.yaml")["species"]
+        for t in s["trees"]:
+            want = ov["trees"].get(t["species"])
+            st = next((x for x in cal[t["species"]]["stages"] if x["name"] == want), None) if want else None
+            if st:
+                t.update(stage=st["name"], desc=st["desc"], stage_ko=st.get("ko", st["name"]), source="override")
+    s["overrides"] = ov
+    return s

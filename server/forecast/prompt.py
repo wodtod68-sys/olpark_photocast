@@ -5,9 +5,49 @@ lighting 블록 우선순위: 강수 > 안개 > 밤 > 박명 > 흐림 > 태양 �
 """
 from __future__ import annotations
 from datetime import datetime
-from .common import load_yaml
+from .common import load_yaml, rules
 
-DIR = load_yaml("rules.yaml")["direction"]
+
+# ---------------- 템플릿 키 추적 ----------------
+# 실험실 화면에서 "이번 조건에서 실제로 쓰인 문장"만 편집창으로 보여 주려고,
+# 블록마다 읽힌 문자열의 경로(예: lighting.sun, exposure.ev[3][1])를 기록한다. 숫자(임계값)는 기록하지 않는다.
+class _TrackList(list):
+    def __init__(self, data, path, used):
+        super().__init__(data)
+        self._p, self._u = path, used
+
+    def _wrap(self, i, v):
+        return _wrap(v, f"{self._p}[{i}]", self._u)
+
+    def __getitem__(self, i):
+        v = super().__getitem__(i)
+        return self._wrap(i if i >= 0 else len(self) + i, v)
+
+    def __iter__(self):
+        for i, v in enumerate(list.__iter__(self)):
+            yield self._wrap(i, v)
+
+
+class _TrackDict(dict):
+    def __init__(self, data, path, used):
+        super().__init__(data)
+        self._p, self._u = path, used
+
+    def __getitem__(self, k):
+        return _wrap(super().__getitem__(k), f"{self._p}.{k}" if self._p else str(k), self._u)
+
+    def get(self, k, default=None):
+        return self[k] if k in self else default
+
+
+def _wrap(v, path, used):
+    if isinstance(v, dict):
+        return _TrackDict(v, path, used)
+    if isinstance(v, list):
+        return _TrackList(v, path, used)
+    if isinstance(v, str):
+        used.append(path)
+    return v
 
 
 def _bin(table: list, value: float, **fmt) -> str:
@@ -92,7 +132,7 @@ def block_consequences(T, b, t, terms) -> str:
     d = t["direction"]
     if d["spot_shaded"]:
         return C["text"].format(parts=C["spot_shaded"])
-    fs, ss = DIR["forward_strong"], DIR["side_strong"]
+    fs, ss = rules()["direction"]["forward_strong"], rules()["direction"]["side_strong"]
     f, s = d["forward"], d["lateral"]
     subj = terms.get("subjects_short", "the buildings")
     parts = [C["camera_facing"]["shade" if f > fs else "lit" if f < -fs else "grazing"].format(subjects_short=subj)]
@@ -136,7 +176,7 @@ def block_exposure(T, dl: dict) -> str:
 
 
 def block_sky_air(T, b, t, tgt_dt) -> str:
-    fs = DIR["forward_strong"]
+    fs = rules()["direction"]["forward_strong"]
     st = t["sky"]
     if st in ("clear", "partly") and t["light"]["stage"] == "L2":
         sky = T["sky"]["golden"]
@@ -182,19 +222,30 @@ def block_ground(T, b, t) -> str:
 
 
 def build_prompt(spot: dict, base_state: dict, tgt_state: dict, dl: dict, base_dt, tgt_dt) -> tuple[str, dict]:
-    T = load_yaml("templates.yaml")
+    """반환: (프롬프트, 정보). 정보의 block_keys = 블록별로 실제 쓰인 템플릿 문자열 경로 목록."""
+    raw = load_yaml("templates.yaml")
     terms = spot.get("scene_terms", {})
     mode = lighting_mode(tgt_state)
-    blocks = {
-        "time_change": block_time(T, base_dt.astimezone(spot["tz"]), tgt_dt.astimezone(spot["tz"])),
-        "preserve": T["preserve"].format(subjects=terms.get("subjects", "")),
-        "lighting": block_lighting(T, base_state, tgt_state, mode),
-        "consequences": block_consequences(T, base_state, tgt_state, terms) if mode == "sun" else "",
-        "exposure": block_exposure(T, dl),
-        "sky_air": block_sky_air(T, base_state, tgt_state, tgt_dt.astimezone(spot["tz"])),
-        "trees": block_trees(T, base_state, tgt_state),
-        "ground": block_ground(T, base_state, tgt_state),
-        "no_beautify": T["no_beautify"].format(scene_kind=terms.get("scene_kind", "photo")),
+    b_dt, t_dt = base_dt.astimezone(spot["tz"]), tgt_dt.astimezone(spot["tz"])
+    makers = {
+        "time_change": lambda T: block_time(T, b_dt, t_dt),
+        "preserve": lambda T: T["preserve"].format(subjects=terms.get("subjects", "")),
+        "lighting": lambda T: block_lighting(T, base_state, tgt_state, mode),
+        "consequences": lambda T: block_consequences(T, base_state, tgt_state, terms) if mode == "sun" else "",
+        "exposure": lambda T: "" if dl.get("override") else block_exposure(T, dl),
+        "sky_air": lambda T: block_sky_air(T, base_state, tgt_state, t_dt),
+        "trees": lambda T: block_trees(T, base_state, tgt_state),
+        "ground": lambda T: block_ground(T, base_state, tgt_state),
+        "no_beautify": lambda T: T["no_beautify"].format(scene_kind=terms.get("scene_kind", "photo")),
     }
-    text = "\n".join(blocks[k] for k in T["order"] if blocks.get(k))
-    return text, dict(template_version=T["version"], lighting_mode=mode, blocks=blocks)
+    blocks, block_keys = {}, {}
+    for name, make in makers.items():
+        used: list[str] = []
+        blocks[name] = make(_TrackDict(raw, "", used))
+        if name == "exposure" and dl.get("override"):
+            blocks[name] = dl["override"]
+        block_keys[name] = list(dict.fromkeys(used)) if blocks[name] else []
+    order = [k for k in raw["order"] if blocks.get(k)]
+    text = "\n".join(blocks[k] for k in order)
+    return text, dict(template_version=raw["version"], lighting_mode=mode, blocks=blocks,
+                      block_keys={k: block_keys[k] for k in order}, order=order)

@@ -1,45 +1,35 @@
-# 들꽃마루 (올림픽공원 8경, 장미광장 옆 언덕) — ★ 임시 설정. 답사 후 직접 찍은 사진·실측값으로 교체.
+# 8경 들꽃마루 — 2026-11-22 답사 값 (좌표·방위는 현장 실측).
 name: "들꽃마루"
-# ★ 임시 추정: OpenStreetMap에 지점이 없어 '남2문(37.5145, 127.1220)과 장미광장(37.5128, 127.1263) 사이,
-#   남2문 근처 숲길 안쪽 언덕'이라는 안내문을 근거로 잡은 값. 오차 ±150m (태양·날씨 계산에는 영향 없음).
-lat: 37.5135
-lon: 127.1245
+lat: 37.513056        # 37°30'47"N
+lon: 127.126111       # 127°7'34"E
 timezone: Asia/Seoul
 
-# ★ 임시 추정, 답사 후 교체. 언덕 꼭대기 원두막이 하늘을 배경으로 실루엣 → 노을 쪽(서남서)을 본다고 추정.
-camera_bearing_deg: 250
-hfov_deg: 14            # ★ 추정: 세로 사진, 망원(압축감이 큼)
-vfov_deg: 21
-pitch_deg: 3
+camera_bearing_deg: 312   # 진북 기준 (현장 실측)
+hfov_deg: 50              # 아이폰 1x 세로 사진 기준
+vfov_deg: 65
+pitch_deg: 0
 
-base_image: ../public/images/wild.jpg
-# ★ 촬영 시각 모름(EXIF 없음). 요청대로 "맑은 날 한낮(12시)·맑음"으로 가정.
-#   주의: 사진은 실제로는 해 진 직후 박명(보랏빛 하늘, 실루엣)으로 보인다. 한낮 가정과 어긋나므로
-#   이 스팟의 예측은 노출·색 변화 방향이 틀릴 수 있다. 사진을 바꾸기 전까지 대안:
-#   base_datetime: "2025-10-05 18:20"  (일몰 약 20분 뒤) + base_assumed 제거
-#   날짜는 황화코스모스가 핀 모습으로 보아 10월 초로 추정.
-base_datetime: "2025-10-05 12:00"
-base_assumed:
-  weather: {cloud_cover: 5, cloud_cover_low: 0, cloud_cover_mid: 0, cloud_cover_high: 5, relative_humidity_2m: 50, temperature_2m: 21}
-  air: {pm25: 15}
+base_image: base_photos/wild.jpg     # 아이폰 원본의 전송용 사본 (scripts/import_basephotos.py)
+base_datetime: null       # EXIF DateTimeOriginal에서 읽음. 날씨는 촬영 시각의 실제 값(Open-Meteo)
 
-sky_mask: null
+sky_mask: null            # 없으면 verify가 기준 사진에서 하늘을 추정
 ignore_mask: null
 
 landmarks:
-  - {name: "the hilltop pavilion", distance_km: 0.08, description: "small wooden pavilion at the top of the slope"}
-trees:                   # ★ 추정. 양옆 배경 나무 수종은 사진으로 판별 어려워 넣지 않음
-  - {species: 코스모스, description: "orange and yellow cosmos (황화코스모스 추정) covering the slope"}
+  - {"name": "the hilltop pavilion", "distance_km": 0.08, "description": "small wooden pavilion at the top of the slope"}
+trees:                    # 2026-11-22 실측 메모 기준
+  - {species: 코스모스, description: "cosmos field on the slope, dried brown (11/22 실측)"}
+  - {species: 단풍나무, description: "maple trees on both sides, peak color (11/22 실측)"}
 
-obstacle_elev_deg: 8     # 양옆 숲 (★ 추정)
+obstacle_elev_deg: 8      # ★ 추정 (해 지는 쪽 장애물 높이각, 답사 때 재면 교체)
 typical_pm25: 20
 airkorea_region: 서울
 airkorea_station: 송파구
 
 scene_terms:
-  subjects: "the hilltop pavilion, the street lamps and solar panels, the trees on both sides, the people on the path, "
+  subjects: "the hilltop pavilion, the street lamps, the red maple trees on both sides, the dried flower stalks along the path, "
   subjects_short: "the pavilion and trees"
-  ground: "the flower field and the path"
-  scene_kind: "landscape photo"
+  ground: "the dried flower field and the path"
+  scene_kind: "phone photo"
 
-notes: "기준 사진 출처: 한국관광재단 · 공공누리 제1유형 (친구 저장소 public/images)."
+notes: "8경 들꽃마루. 기준 사진: 아이폰 원본(~/skyfinder/basephotos), 전송용 사본 server/base_photos/wild.jpg."

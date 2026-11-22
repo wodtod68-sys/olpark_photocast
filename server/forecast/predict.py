@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from .common import OUT, load_spot, parse_local, log, load_yaml
 from .conditions import conditions
-from .scene import build_state, delta
+from .scene import build_state, delta, apply_overrides
 from .prompt import build_prompt
 from . import generate as G
 
@@ -35,13 +35,33 @@ def summary_table(b: dict, t: dict, dl: dict) -> str:
     return "\n".join(lines)
 
 
-def run_predict(spot: dict, tgt_dt: datetime, n: int, model: str, dry_run: bool, ref: Path | None = None,
-                out_dir: Path | None = None, quiet: bool = False) -> dict:
+# overrides["assume"] = "clear" 이면 목표 시각의 날씨를 예보 대신 "맑은 날"로 가정한다
+# (실험실 그리드처럼 날짜와 상관없이 같은 대표 조건을 비교할 때).
+ASSUMED = {"clear": dict(weather=dict(cloud_cover=5, cloud_cover_low=0, cloud_cover_mid=0, cloud_cover_high=5,
+                                      relative_humidity_2m=55), air=dict(pm25=15))}
+
+
+def compose(spot: dict, tgt_dt: datetime, overrides: dict | None = None) -> dict:
+    """조건 계산 → 상태표(덮어쓰기 적용) → 노출 변화 → 프롬프트. API 호출(생성)은 하지 않는다."""
+    overrides = dict(overrides or {})
+    assume = overrides.pop("assume", None)
     base_c = conditions(spot, spot["base_dt"], spot.get("base_assumed"))
-    tgt_c = conditions(spot, tgt_dt)
-    bs, ts = build_state(spot, base_c), build_state(spot, tgt_c)
+    tgt_c = conditions(spot, tgt_dt, ASSUMED.get(assume) if assume else None)
+    bs = build_state(spot, base_c)
+    ts_data = build_state(spot, tgt_c)
+    ts = apply_overrides(ts_data, overrides)
+    if assume:
+        ts = dict(ts, overrides=dict(ts.get("overrides") or {}, assume=assume))
     dl = delta(bs, ts)
     prompt, pinfo = build_prompt(spot, bs, ts, dl, spot["base_dt"], tgt_dt)
+    return dict(base_cond=base_c, target_cond=tgt_c, base=bs, target_data=ts_data, target=ts, delta=dl,
+                prompt=prompt, info=pinfo)
+
+
+def run_predict(spot: dict, tgt_dt: datetime, n: int, model: str, dry_run: bool, ref: Path | None = None,
+                out_dir: Path | None = None, quiet: bool = False, overrides: dict | None = None) -> dict:
+    c = compose(spot, tgt_dt, overrides)
+    bs, ts, dl, prompt, pinfo = c["base"], c["target"], c["delta"], c["prompt"], c["info"]
     out_dir = out_dir or OUT / spot["id"] / tgt_dt.astimezone(spot["tz"]).strftime("%Y%m%d_%H%M")
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "scene_state.json").write_text(json.dumps(dict(base=bs, target=ts, delta=dl), ensure_ascii=False,
@@ -84,7 +104,7 @@ def main():
     ap.add_argument("--spot", required=True)
     ap.add_argument("--datetime", required=True, help='스팟 현지 시각, 예: "2026-11-25 10:00"')
     ap.add_argument("--n", type=int, default=1, help="샘플 수")
-    ap.add_argument("--model", default="nb2.1", help="nb2.1 | pro | 모델 ID")
+    ap.add_argument("--model", default="pro", help="pro(기본) | nb2.1 | 모델 ID")
     ap.add_argument("--ref", default=None, help="두 번째 이미지로 첨부할 참조 사진")
     ap.add_argument("--max-calls", type=int, default=5)
     ap.add_argument("--dry-run", action="store_true", help="API 호출 없이 상태표와 프롬프트만")

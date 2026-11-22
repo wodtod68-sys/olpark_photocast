@@ -1,11 +1,13 @@
 fastapi
 uvicorn[standard]
+python-multipart        # 실험실 실제 사진 업로드
 pyyaml
+ruamel.yaml             # 템플릿 편집 위치 찾기
 google-genai
 pillow
+pillow-heif             # 아이폰 HEIC 기준·실제 사진
 numpy
 pandas
 pvlib
-# forecast.verify / forecast.sweep(채점·비교 스트립)까지 쓰려면:
-# opencv-python-headless
-# scikit-image
+opencv-python-headless  # 실제 사진 정렬·채점 (forecast.verify)
+scikit-image

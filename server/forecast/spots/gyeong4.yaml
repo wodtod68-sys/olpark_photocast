@@ -1,0 +1,34 @@
+# 4경 4경 — 2026-11-22 답사 값 (좌표·방위는 현장 실측).
+name: "4경"
+lat: 37.516667        # 37°31'00"N
+lon: 127.12       # 127°7'12"E
+timezone: Asia/Seoul
+
+camera_bearing_deg: 161   # 진북 기준 (현장 실측)
+hfov_deg: 50              # 아이폰 1x 세로 사진 기준
+vfov_deg: 65
+pitch_deg: 0
+
+base_image: base_photos/gyeong4.jpg     # 아이폰 원본의 전송용 사본 (scripts/import_basephotos.py)
+base_datetime: null       # EXIF DateTimeOriginal에서 읽음. 날씨는 촬영 시각의 실제 값(Open-Meteo)
+
+sky_mask: null            # 없으면 verify가 기준 사진에서 하늘을 추정
+ignore_mask: null
+
+landmarks: []
+trees:                    # 2026-11-22 실측 메모 기준
+  - {species: 활엽수, description: "surrounding deciduous trees, late autumn with many fallen leaves (11/22 실측)"}
+  - {species: 잔디, description: "the lawn around the sculpture, straw-brown dormant (11/22 실측)"}
+
+obstacle_elev_deg: 8      # ★ 추정 (해 지는 쪽 장애물 높이각, 답사 때 재면 교체)
+typical_pm25: 20
+airkorea_region: 서울
+airkorea_station: 송파구
+
+scene_terms:
+  subjects: "the tall concrete gate-like sculpture with its rusted metal top, the stone path, the buildings and the tall tower in the background, the trees, "
+  subjects_short: "the sculpture"
+  ground: "the lawn and the stone path"
+  scene_kind: "phone photo"
+
+notes: "4경 4경. 기준 사진: 아이폰 원본(~/skyfinder/basephotos), 전송용 사본 server/base_photos/gyeong4.jpg."

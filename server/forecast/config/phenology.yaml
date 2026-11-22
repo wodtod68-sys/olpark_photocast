@@ -20,14 +20,15 @@ species:
     name_en: maple trees
     name_ko: 단풍나무
     aliases: [단풍나무, maple]
+    # 2026-11-22 실측(들꽃마루 양옆): 단풍 절정 → 절정을 11월 하순까지로 늦춤
     stages:
       - {start: "01-01", name: bare,        ko: 앙상함,     desc: "bare branches"}
       - {start: "04-10", name: leaf_out,    ko: 새잎,       desc: "fresh reddish-green young leaves"}
       - {start: "05-01", name: green,       ko: 초록,       desc: "full green foliage"}
-      - {start: "10-18", name: turning,     ko: 물드는 중,  desc: "leaves starting to turn orange and red"}
-      - {start: "10-30", name: peak_red,    ko: 단풍 절정,  desc: "vivid red and orange foliage"}
-      - {start: "11-15", name: leaf_fall,   ko: 잎 지는 중, desc: "sparse dull-red leaves, many fallen leaves"}
-      - {start: "12-01", name: bare,        ko: 앙상함,     desc: "bare branches"}
+      - {start: "10-22", name: turning,     ko: 물드는 중,  desc: "leaves starting to turn orange and red"}
+      - {start: "11-05", name: peak_red,    ko: 단풍 절정,  desc: "vivid red and orange foliage"}
+      - {start: "11-27", name: leaf_fall,   ko: 잎 지는 중, desc: "sparse dull-red leaves, many fallen leaves"}
+      - {start: "12-10", name: bare,        ko: 앙상함,     desc: "bare branches"}
   cherry:
     name_en: cherry trees
     name_ko: 벚나무
@@ -88,16 +89,32 @@ species:
       - {start: "09-01", name: bloom,       ko: 만개,       desc: "a dense field of blooming orange and yellow cosmos flowers"}
       - {start: "10-20", name: fading,      ko: 지는 중,    desc: "fading cosmos with fewer, duller flowers and brown seed heads"}
       - {start: "11-05", name: withered,    ko: 시듦,       desc: "withered brown stalks with no flowers"}
-  # 장미광장: 5월 중순~6월 1차 개화, 가을에 2차 개화(약하게)
+  # 장미광장: 5월 중순~6월 1차 개화, 가을 2차 개화(약하게). 11월 중순부터 겨울 짚 보온.
+  # 2026-11-22 실측: 장미 덤불이 짚으로 싸여 있음
   rose:
     name_en: rose bushes
     name_ko: 장미
     aliases: [장미, rose]
     stages:
-      - {start: "01-01", name: dormant,     ko: 휴면,       desc: "pruned bare rose bushes with no flowers or leaves"}
-      - {start: "04-01", name: leaf,        ko: 잎만,       desc: "rose bushes with fresh green leaves and no flowers"}
+      - {start: "01-01", name: winter_wrap, ko: 짚 보온,    desc: "low rose bushes wrapped and covered in straw for winter, no leaves or flowers"}
+      - {start: "03-20", name: dormant,     ko: 가지치기,   desc: "pruned bare rose bushes with no flowers or leaves"}
+      - {start: "04-05", name: leaf,        ko: 잎만,       desc: "rose bushes with fresh green leaves and no flowers"}
       - {start: "05-15", name: bloom,       ko: 만개,       desc: "rose bushes in full bloom with many red, pink and white roses"}
       - {start: "06-20", name: after_bloom, ko: 꽃 드묾,    desc: "green rose bushes with only a few scattered flowers"}
       - {start: "09-25", name: autumn_bloom, ko: 가을 개화, desc: "rose bushes with a moderate autumn bloom"}
-      - {start: "11-01", name: late,        ko: 시든 꽃,    desc: "rose bushes with sparse faded flowers and yellowing leaves"}
-      - {start: "12-01", name: dormant,     ko: 휴면,       desc: "pruned bare rose bushes with no flowers or leaves"}
+      - {start: "10-28", name: late,        ko: 시든 꽃,    desc: "rose bushes with sparse faded flowers and yellowing leaves"}
+      - {start: "11-15", name: winter_wrap, ko: 짚 보온,    desc: "low rose bushes wrapped and covered in straw for winter, no leaves or flowers"}
+  # 수종을 특정하기 어려운 일반 낙엽 활엽수(느티나무·참나무 등 공원 숲)
+  # 2026-11-22 실측(4경 주변): 단풍 후반·낙엽
+  deciduous:
+    name_en: deciduous trees
+    name_ko: 활엽수
+    aliases: [활엽수, 낙엽수, 느티나무, 참나무, deciduous]
+    stages:
+      - {start: "01-01", name: bare,        ko: 앙상함,     desc: "bare grey-brown branches"}
+      - {start: "04-12", name: leaf_out,    ko: 새잎,       desc: "fresh light-green young leaves"}
+      - {start: "05-05", name: green,       ko: 초록,       desc: "full green foliage"}
+      - {start: "10-15", name: turning,     ko: 물드는 중,  desc: "foliage turning yellow, orange and brown"}
+      - {start: "10-30", name: peak,        ko: 단풍 절정,  desc: "full autumn foliage in yellow, orange and russet"}
+      - {start: "11-15", name: late_fall,   ko: 단풍 후반·낙엽, desc: "late autumn foliage with about half the leaves fallen and many fallen leaves on the ground"}
+      - {start: "12-01", name: bare,        ko: 앙상함,     desc: "bare grey-brown branches"}

@@ -492,7 +492,7 @@ def score_against_real(sp: dict, real_path: Path, image_rows: list[dict], tag: s
         g2, s2, _ = V.masks(sp, base, valid_r & valid_p)
         sp_, de = V.score(pred, real, base, g2, s2)
         sb2, _ = V.score(base, real, base, g2, s2)
-        header = [f"{sp['name']} | real {tag} | image #{row['id']} | template {row.get('template_name', '')}",
+        header = [f"{sp['id']} | real {tag} | image #{row['id']} | template #{row.get('template_id', '')}",
                   f"align real: {how_r} / pred: {how_p} | sky mask: {how_m}"]
         pn = V.panel(base, pred, real, de, g2, sp_, sb2, sr, header)
         pdst = PANEL_DIR / f"real_{tag}_img{row['id']}.jpg"

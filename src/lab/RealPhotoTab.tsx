@@ -92,12 +92,10 @@ export function RealPhotoTab({ me, onUsage }: { me: Me; onUsage: () => void }) {
           사진
           <input type="file" accept="image/*,.heic,.heif" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
         </label>
-        {needTime && (
-          <label className={s.field}>
-            촬영 시각 (사진에 EXIF 시각이 없어요)
-            <input type="datetime-local" value={manual} onChange={(e) => setManual(e.target.value)} />
-          </label>
-        )}
+        <label className={s.field}>
+          {needTime ? '촬영 시각 (사진에 EXIF 시각이 없어요 — 꼭 입력)' : '촬영 시각 (비우면 사진의 EXIF 시각, EXIF가 틀렸으면 직접 입력)'}
+          <input type="datetime-local" value={manual} onChange={(e) => setManual(e.target.value)} />
+        </label>
         <label className={s.field}>
           같이 비교할 템플릿 (shared는 항상 포함)
           <select value={tid} onChange={(e) => setTid(e.target.value)}>
@@ -124,7 +122,7 @@ export function RealPhotoTab({ me, onUsage }: { me: Me; onUsage: () => void }) {
       {res && (
         <div className={s.result}>
           <p>
-            촬영 {res.taken_at.replace('T', ' ')} ({res.taken_at_source === 'exif' ? 'EXIF' : '직접 입력'}) · 정렬 {res.baseline.align} · 하늘 마스크 {res.baseline.sky_mask}
+            촬영 {res.taken_at.replace('T', ' ')} ({res.taken_at_source === 'exif' ? 'EXIF' : `직접 입력 ${res.taken_at_source.replace('manual', '')}`}) · 정렬 {res.baseline.align} · 하늘 마스크 {res.baseline.sky_mask}
           </p>
           <p>
             기준 사진을 그대로 뒀을 때(변화 없음) 지면 ΔE <b>{res.baseline.base.ground_dE.toFixed(2)}</b>, 하늘 ΔE {res.baseline.base.sky_dE.toFixed(2)}

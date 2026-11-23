@@ -314,11 +314,14 @@ async def real_photo(file: UploadFile = File(...), spot: str = Form(...), taken_
     raw = await file.read()
     if len(raw) > 30 * 2**20:
         raise HTTPException(413, "30MB 이하 사진만 올릴 수 있어요")
-    taken, src = core.read_taken_at(raw), "exif"
-    if taken is None:
-        if not taken_at:
-            raise HTTPException(422, "사진에 촬영 시각(EXIF)이 없어요. 촬영 시각을 직접 입력해 주세요.")
-        taken, src = core.parse_dt(taken_at), "manual"
+    # 직접 입력한 시각이 있으면 EXIF보다 우선 (내보내기·편집으로 EXIF 시각이 틀린 경우가 있다)
+    exif_t = core.read_taken_at(raw)
+    if taken_at:
+        taken, src = core.parse_dt(taken_at), "manual" + (f"(exif {exif_t:%H:%M})" if exif_t else "")
+    elif exif_t:
+        taken, src = exif_t, "exif"
+    else:
+        raise HTTPException(422, "사진에 촬영 시각(EXIF)이 없어요. 촬영 시각을 직접 입력해 주세요.")
     path = await run_in_threadpool(core.store_real, raw)
     sp = core.spot(spot)
     shared_id = core.shared_template()["id"]

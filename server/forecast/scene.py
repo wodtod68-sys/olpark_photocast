@@ -160,12 +160,18 @@ def appearance(st: dict, DR: dict) -> dict:
     dw = DR["direction_weight_by_direct"][st["direct_sun"]["stage"]]
     if st["light"]["stage"] in ("L0", "L1"):
         dw = 0.0
+    # 선택 항목: 해가 장애물 뒤로 넘어가 그늘일 때(spot_shaded). 없으면 예전과 같다.
+    sh = DR.get("spot_shaded") if st["direction"].get("spot_shaded") else None
+    if sh:
+        dw *= sh.get("direction_weight", 0.0)
     for k in keys:
         v[k] += DR["direction_per_forward"][k] * st["direction"]["forward"] * dw
         v[k] += DR["direct_sun"][st["direct_sun"]["stage"]][k]
         v[k] += DR["haze_per_stage"][k] * st["haze"]["level"]
         if st["precip"]["form"] != "none":
             v[k] += DR["precip"][k]
+        if sh:
+            v[k] += sh.get(k, 0.0)
     return {k: round(v[k], 3) for k in keys}
 
 

@@ -103,6 +103,16 @@ def spots(user: str = Depends(current_user)):
     return out
 
 
+def _err(e: Exception) -> HTTPException:
+    """사람이 읽을 수 있는 오류로. 예상한 입력 오류는 400, 그 밖(외부 API 등)은 502."""
+    if isinstance(e, PermissionError):
+        return HTTPException(429, str(e))
+    if isinstance(e, (ValueError, KeyError, IndexError)):
+        msg = str(e.args[0]) if isinstance(e, KeyError) and e.args else str(e)
+        return HTTPException(400, msg if len(msg) > 3 else f"입력을 확인해 주세요 ({type(e).__name__}: {msg})")
+    return HTTPException(502, f"조건 계산 중 오류가 났어요: {str(e)[:200]}")
+
+
 def _compose_payload(c: dict) -> dict:
     return dict(
         prompt=c["prompt"], order=c["info"]["order"], blocks=c["info"]["blocks"], block_keys=c["info"]["block_keys"],
@@ -120,22 +130,22 @@ def _compose_payload(c: dict) -> dict:
 @router.get("/conditions")
 async def conditions(spot: str, datetime_: str = Query(..., alias="datetime"), template_id: int | None = None,
                      user: str = Depends(current_user)):
-    t = core.get_template(template_id)
     try:
+        t = core.get_template(template_id)
         c = await run_in_threadpool(core.run_compose, spot, datetime_, None, core.template_texts(t))
-    except (KeyError, ValueError) as e:
-        raise HTTPException(400, str(e))
+    except Exception as e:
+        raise _err(e)
     return _compose_payload(c)
 
 
 @router.post("/prompt")
 async def prompt(spot: str = Body(...), datetime_: str = Body(..., alias="datetime"), overrides: dict | None = Body(None),
                  template_id: int | None = Body(None), edits: dict | None = Body(None), user: str = Depends(current_user)):
-    t = core.get_template(template_id)
     try:
+        t = core.get_template(template_id)
         c = await run_in_threadpool(core.run_compose, spot, datetime_, overrides, core.template_texts(t, edits))
-    except (KeyError, ValueError) as e:
-        raise HTTPException(400, str(e))
+    except Exception as e:
+        raise _err(e)
     return _compose_payload(c)
 
 
@@ -145,10 +155,8 @@ async def generate(spot: str = Body(...), datetime_: str = Body(..., alias="date
                    model: str = Body(core.DEFAULT_MODEL), n: int = Body(1), user: str = Depends(current_user)):
     try:
         return await run_in_threadpool(core.generate, user, spot, datetime_, overrides, template_id, edits, model, n)
-    except PermissionError as e:
-        raise HTTPException(429, str(e))
-    except (KeyError, ValueError) as e:
-        raise HTTPException(400, str(e))
+    except Exception as e:
+        raise _err(e)
 
 
 # ---------------- 템플릿 ----------------
@@ -195,8 +203,8 @@ def save_template(tid: int, edits: dict | None = Body(None), templates_yaml: str
     try:
         texts["templates_yaml"] = core.apply_edits(texts["templates_yaml"], edits)
         core.validate(texts)
-    except (ValueError, KeyError, IndexError) as e:
-        raise HTTPException(400, str(e))
+    except Exception as e:
+        raise _err(e)
     db.ex("UPDATE templates SET templates_yaml=?, rules_yaml=?, delta_yaml=?, note=COALESCE(?, note),"
           " name=COALESCE(?, name), updated_at=? WHERE id=?",
           (texts["templates_yaml"], texts["rules_yaml"], texts["delta_yaml"], note, name, db.now(), tid))
@@ -266,6 +274,8 @@ def promote(tid: int, confirm: bool = Body(False, embed=True), user: str = Depen
 async def grid(template_id: int = Body(...), date: str | None = Body(None), model: str = Body(core.DEFAULT_MODEL),
                confirm: bool = Body(False), user: str = Depends(current_user)):
     date = date or (datetime.now(core.KST) + timedelta(days=1)).date().isoformat()
+    if model not in MODELS:
+        raise HTTPException(400, f"모델은 {list(MODELS)} 중 하나")
     if not confirm:
         plan = await run_in_threadpool(core.grid_plan, template_id, date, model)
         plan.update(remaining=core.remaining(user), confirm_needed=True)

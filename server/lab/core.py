@@ -112,6 +112,7 @@ def apply_edits(yaml_text: str, edits: dict[str, str] | None) -> str:
     경로 예: lighting.sun, exposure.ev[3][1], part_of_day[2].text"""
     if not edits:
         return yaml_text
+    check_edits(yaml.safe_load(yaml_text), edits)
     lines = yaml_text.split("\n")
     # 위치 정보는 원문 기준. 같은 줄 안 여러 편집을 위해 뒤쪽 위치부터 바꾼다.
     data = YAML().load(yaml_text)
@@ -138,6 +139,64 @@ def apply_edits(yaml_text: str, edits: dict[str, str] | None) -> str:
         if get_path(check, path) != val:
             raise ValueError(f"{path}: 편집 반영 확인 실패")
     return out
+
+
+def _placeholders(text: str) -> set[str]:
+    import string
+    return {f for _, f, _, _ in string.Formatter().parse(text) if f is not None}
+
+
+def check_edits(data: dict, edits: dict[str, str]) -> None:
+    """편집 전 검사: 경로가 있는 문자열인지, 중괄호 짝, 원래 문장에 없던 자리({foo})를 쓰지 않았는지."""
+    for path, val in edits.items():
+        try:
+            old = get_path(data, path)
+        except (KeyError, IndexError, TypeError):
+            raise ValueError(f"편집할 문장 '{path}'이(가) 이 템플릿에 없어요. 템플릿을 바꿨다면 편집을 되돌려 주세요.")
+        if not isinstance(old, str):
+            raise ValueError(f"'{path}'은(는) 문장이 아니라서 화면에서 고칠 수 없어요")
+        if not isinstance(val, str):
+            raise ValueError(f"'{path}': 문장은 글자여야 해요")
+        try:
+            new_ph = _placeholders(val)
+        except ValueError:
+            raise ValueError(f"'{path}': 중괄호 {{ }}의 짝이 맞지 않아요. 글자 그대로 중괄호를 쓰려면 {{{{ }}}}처럼 두 번 쓰세요.")
+        old_ph = _placeholders(old)
+        extra = sorted(new_ph - old_ph)
+        if extra:
+            allowed = ", ".join("{" + p + "}" for p in sorted(old_ph)) or "없음"
+            raise ValueError(f"'{path}'에 원래 없던 자리 {', '.join('{' + e + '}' for e in extra)}가 있어요. "
+                             f"이 문장에서 쓸 수 있는 자리: {allowed}")
+
+
+VALID_OVERRIDES = {
+    "assume": ["clear"],
+    "direct_sun": ["D0", "D1", "D2", "D3"],
+    "haze": ["H0", "H1", "H2", "H3", "H4"],
+    "sky": ["clear", "partly", "high", "low_many", "overcast", "golden", "twilight", "night", "rain", "fog"],
+    "precip": ["none"] + [f"{f}:{i}" for f in ("rain", "snow") for i in ("light", "moderate", "heavy")] + ["rain", "snow"],
+}
+
+
+def check_overrides(ov: dict | None) -> None:
+    if not ov:
+        return
+    for k, v in ov.items():
+        if k in VALID_OVERRIDES:
+            if v not in VALID_OVERRIDES[k]:
+                raise ValueError(f"덮어쓰기 {k}={v}는 쓸 수 없어요. 가능한 값: {', '.join(VALID_OVERRIDES[k])}")
+        elif k == "ground":
+            bad = [g for g in (v or []) if g not in ("wet", "snow", "frost", "leaves")]
+            if not isinstance(v, list) or bad:
+                raise ValueError(f"덮어쓰기 ground는 [wet, snow, frost, leaves] 중에서 고른 목록이어야 해요 (잘못된 값: {bad or v})")
+        elif k == "trees":
+            cal = yaml.safe_load((FC / "config" / "phenology.yaml").read_text(encoding="utf-8"))["species"]
+            for sp, st in (v or {}).items():
+                names = [x["name"] for x in cal.get(sp, {}).get("stages", [])]
+                if st not in names:
+                    raise ValueError(f"덮어쓰기 trees.{sp}={st}는 쓸 수 없어요. 가능한 단계: {', '.join(dict.fromkeys(names)) or '(모르는 수종)'}")
+        else:
+            raise ValueError(f"덮어쓸 수 없는 항목: {k} (가능: {', '.join(list(VALID_OVERRIDES) + ['ground', 'trees'])})")
 
 
 def get_path(data: dict, path: str):
@@ -196,6 +255,7 @@ def parse_dt(text: str) -> datetime:
 
 
 def run_compose(spot_id: str, dt_text: str, overrides: dict | None, texts: dict[str, str]) -> dict:
+    check_overrides(overrides)
     parsed = validate(texts)
     token = set_config_override({CONFIG_FILE[k]: v for k, v in parsed.items()})
     try:
@@ -282,7 +342,8 @@ def generate(user: str, spot_id: str, dt_text: str, overrides: dict | None, temp
     """프롬프트 조립 → 샘플별 캐시 확인 → 없는 것만 생성. 한도는 새로 만들 장수로 미리 확인."""
     if model not in MODELS:
         raise ValueError(f"모델은 {list(MODELS)} 중 하나")
-    n = max(1, min(3, int(n)))
+    if not isinstance(n, int) or not 1 <= n <= 3:
+        raise ValueError("장수(n)는 1~3")
     t = get_template(template_id)
     c = run_compose(spot_id, dt_text, overrides, template_texts(t, edits))
     base_path = c["spot"]["base_image_path"]

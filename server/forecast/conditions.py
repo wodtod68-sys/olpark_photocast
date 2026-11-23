@@ -210,7 +210,8 @@ def weather(spot: dict, dt: datetime) -> dict:
             w = o
             src["main"] = kind
     if not w:
-        raise RuntimeError("날씨 자료를 하나도 못 받았다")
+        raise ValueError("이 날짜·시각의 날씨 자료가 없어요 (예보는 약 16일 뒤까지만 있어요). "
+                         "날짜를 바꾸거나 실험실에서 '맑은 날 가정'을 켜 주세요.")
     w["source"] = src
     return w
 

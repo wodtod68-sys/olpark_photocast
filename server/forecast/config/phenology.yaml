@@ -63,8 +63,11 @@ species:
     name_en: oriental arborvitae tree
     name_ko: 측백나무
     aliases: [측백나무, arborvitae, thuja]
+    # 상록수지만 한겨울엔 잎이 칙칙한 갈색빛 녹색으로 변한다(측백나무 겨울 갈변)
     stages:
-      - {start: "01-01", name: evergreen,   ko: 늘푸름,     desc: "dense dark-green foliage"}
+      - {start: "01-01", name: winter,      ko: 겨울빛 상록, desc: "dense but dull dark olive-green foliage with a slight brownish winter tint, not fresh or bright green"}
+      - {start: "03-25", name: evergreen,   ko: 늘푸름,     desc: "dense dark-green foliage"}
+      - {start: "12-10", name: winter,      ko: 겨울빛 상록, desc: "dense but dull dark olive-green foliage with a slight brownish winter tint, not fresh or bright green"}
   # 잔디(들잔디·한국잔디): 겨울 휴면으로 누렇게 변하는 시기가 화면 인상을 크게 바꾼다
   lawn:
     name_en: lawn

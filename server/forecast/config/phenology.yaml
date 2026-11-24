@@ -109,12 +109,20 @@ species:
     name_ko: 장미
     aliases: [장미, rose]
     stages:
+      # 1차 5월 중순~6월 절정, 품종별로 8월 말까지 이어 핌 → 8월 말 여름 전정 → 2차 10월(봄보다 약함)
+      # ref: 같은 자리 만개 사진(pics/rose_ref.png 워터마크 지운 사본). 개화 정도는 desc에서 사진 대비로 조절
       - {start: "01-01", name: winter_wrap, ko: 짚 보온,    desc: "low rose bushes wrapped and covered in straw for winter, no leaves or flowers"}
-      - {start: "03-20", name: dormant,     ko: 가지치기,   desc: "pruned bare rose bushes with no flowers or leaves"}
+      - {start: "03-20", name: dormant,     ko: 가지치기,   desc: "pruned bare rose bushes with the straw removed, no flowers or leaves"}
       - {start: "04-05", name: leaf,        ko: 잎만,       desc: "rose bushes with fresh green leaves and no flowers"}
-      - {start: "05-15", name: bloom,       ko: 만개,       desc: "rose bushes in full bloom with many red, pink and white roses"}
-      - {start: "06-20", name: after_bloom, ko: 꽃 드묾,    desc: "green rose bushes with only a few scattered flowers"}
-      - {start: "09-25", name: autumn_bloom, ko: 가을 개화, desc: "rose bushes with a moderate autumn bloom"}
+      - {start: "05-10", name: early_bloom, ko: 피기 시작,  ref: ref_photos/rose_bloom.jpg,
+         desc: "green rose bushes with the first roses opening, far fewer flowers than in the second image (use the second image only for the rose bushes and flowers, including the climbing rose on the frame in the center, not its sky, lighting, framing or buildings)"}
+      - {start: "05-20", name: bloom,       ko: 만개,       ref: ref_photos/rose_bloom.jpg,
+         desc: "rose bushes in full bloom with many red, pink, yellow and white roses, like the beds in the second image (use the second image only for the rose bushes and flowers, including the climbing rose on the frame in the center, not its sky, lighting, framing or buildings)"}
+      - {start: "06-20", name: summer_bloom, ko: 여름 개화, ref: ref_photos/rose_bloom.jpg,
+         desc: "green rose bushes still blooming but with clearly fewer roses than in the second image (use the second image only for the rose bushes and flowers, including the climbing rose on the frame in the center, not its sky, lighting, framing or buildings)"}
+      - {start: "08-25", name: summer_prune, ko: 꽃 드묾,  desc: "trimmed green rose bushes with almost no flowers"}
+      - {start: "10-01", name: autumn_bloom, ko: 가을 개화, ref: ref_photos/rose_bloom.jpg,
+         desc: "rose bushes with a moderate autumn bloom, about half as many roses as in the second image (use the second image only for the rose bushes and flowers, including the climbing rose on the frame in the center, not its sky, lighting, framing or buildings)"}
       - {start: "10-28", name: late,        ko: 시든 꽃,    desc: "rose bushes with sparse faded flowers and yellowing leaves"}
       - {start: "11-15", name: winter_wrap, ko: 짚 보온,    desc: "low rose bushes wrapped and covered in straw for winter, no leaves or flowers"}
   # 수종을 특정하기 어려운 일반 낙엽 활엽수(느티나무·참나무 등 공원 숲)

@@ -18,6 +18,7 @@ ignore_mask: null
 landmarks: []
 trees:                    # 2026-11-22 실측 메모 기준
   - {species: 장미, description: "rose beds wrapped in straw mats for winter (11/22 실측)"}
+  - {species: 활엽수, description: "bare deciduous trees behind the sculpture on the left (11/22 실측)"}
 
 obstacle_elev_deg: 10      # ★ 추정 (해 지는 쪽 장애물 높이각, 답사 때 재면 교체)
 typical_pm25: 20
@@ -25,8 +26,8 @@ airkorea_region: 서울
 airkorea_station: 송파구
 
 scene_terms:
-  subjects: "the large red-and-blue string sphere sculpture in its white frame, the straw-wrapped rose beds, the brick paths, the bare shrub in the center, the white dome building on the right, "
-  subjects_short: "the sphere sculpture and the straw-covered beds"
+  subjects: "the large red-and-blue string sphere sculpture in its white frame, the rose beds, the brick paths, the rose shrub on the frame in the center, the white dome building on the right, "
+  subjects_short: "the sphere sculpture and the rose beds"
   ground: "the brick paths"
   scene_kind: "phone photo"
 

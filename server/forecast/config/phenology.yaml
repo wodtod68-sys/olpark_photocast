@@ -23,7 +23,7 @@ species:
     # 2026-11-22 실측(들꽃마루 양옆): 단풍 절정 → 절정을 11월 하순까지로 늦춤
     stages:
       - {start: "01-01", name: bare,        ko: 앙상함,     desc: "bare branches"}
-      - {start: "04-10", name: leaf_out,    ko: 새잎,       desc: "fresh reddish-green young leaves"}
+      - {start: "04-10", name: leaf_out,    ko: 새잎,       desc: "small fresh light-green spring leaves just coming out (no red, orange or yellow autumn colours)"}   # 검증 #wild 4월: "reddish"에 단풍색이 나옴
       - {start: "05-01", name: green,       ko: 초록,       desc: "full green foliage"}
       - {start: "10-22", name: turning,     ko: 물드는 중,  desc: "leaves starting to turn orange and red"}
       - {start: "11-05", name: peak_red,    ko: 단풍 절정,  desc: "vivid red and orange foliage"}
@@ -73,6 +73,7 @@ species:
     name_en: lawn
     name_ko: 잔디
     aliases: [잔디, 들잔디, lawn, grass]
+    ground_cover: true        # 땅을 덮는 것: 눈이 쌓이면 "그대로 둬라" 문장을 빼서 눈과 충돌하지 않게
     stages:
       - {start: "01-01", name: dormant,     ko: 누런 휴면,  desc: "dry straw-brown dormant grass"}
       - {start: "04-10", name: greening,    ko: 푸르러지는 중, desc: "grass greening, patchy green and brown"}
@@ -87,6 +88,7 @@ species:
     name_en: flower field on the slope
     name_ko: 꽃밭
     aliases: [코스모스, 황화코스모스, cosmos]
+    ground_cover: true
     stages:
       - {start: "01-01", name: winter,      ko: 시든 줄기,  desc: "withered brown stalks with no flowers"}
       - {start: "05-01", name: buds,        ko: 꽃망울,     ref: ref_photos/wild_may.jpg,

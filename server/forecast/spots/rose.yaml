@@ -33,7 +33,7 @@ lamps:                    # 11/22 17:35 실측: 화단 정원등·가로등이 �
   glow: strong
 
 scene_terms:
-  subjects: "the large red-and-blue string sphere sculpture in its white frame, the rose beds, the brick paths, the rose shrub on the frame in the center, the white dome building on the right, "
+  subjects: "the large red-and-blue string sphere sculpture in its white frame, the rose beds, the brick paths, the rose shrub on the frame in the center, the narrow strip of green artificial turf between the paths, the white dome building on the right, "
   subjects_short: "the sphere sculpture and the rose beds"
   ground: "the brick paths"
   scene_kind: "phone photo"

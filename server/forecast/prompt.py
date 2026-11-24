@@ -190,8 +190,14 @@ def block_sky_air(T, b, t, tgt_dt) -> str:
         sky = T["sky"][st]
     A = T["air"]
     hb, ht = b["haze"]["level"], t["haze"]["level"]
+    # 선택 항목 air.heavy / sky.hazy: 짙은 연무(H3)로 크게 바뀔 때. 없으면 예전처럼 air.more
+    heavy = ht == 3 and ht - hb >= 2 and A.get("heavy")
+    if heavy and st in ("clear", "partly", "high") and T["sky"].get("hazy"):
+        sky = T["sky"]["hazy"]
     if ht >= 4:
         air = A["fog"]
+    elif heavy:
+        air = A["heavy"]
     elif ht > hb or (ht >= 1 and t["direction"]["forward"] - b["direction"]["forward"] > 0.2):
         air = A["more"].format(pod_word=part_of_day(T, tgt_dt)["word"])     # 역광 쪽으로 갈수록 연무가 더 보인다
     elif ht < hb:
@@ -212,9 +218,13 @@ def block_trees(T, b, t) -> str:
                                          target=x["desc"], base=bs[x["species"]]["desc"])
              for x in t["trees"] if x["species"] in bs and bs[x["species"]]["stage"] != x["stage"]]
     # 선택 항목 trees.keep: 단계가 같은 수목도 "그대로 둬라"를 적는다(겨울 짚 보온이 꽃밭으로 바뀌는 환각 방지)
+    # 눈이 쌓이면 잔디·꽃밭처럼 땅을 덮는 것(phenology ground_cover)은 "그대로"라고 하지 않는다(눈과 충돌)
     if T["trees"].get("keep"):
+        cal = load_yaml("phenology.yaml")["species"]
+        snowy = "snow" in t["ground"]
         items += [T["trees"]["keep"].format(species=x.get("name_en", x["species"]), target=x["desc"])
-                  for x in t["trees"] if x["species"] in bs and bs[x["species"]]["stage"] == x["stage"]]
+                  for x in t["trees"] if x["species"] in bs and bs[x["species"]]["stage"] == x["stage"]
+                  and not (snowy and cal.get(x["species"], {}).get("ground_cover"))]
     return T["trees"]["text"].format(items=T["trees"]["joiner"].join(items)) if items else ""
 
 

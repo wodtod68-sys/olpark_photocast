@@ -211,6 +211,10 @@ def block_trees(T, b, t) -> str:
     items = [T["trees"]["change"].format(species=x.get("name_en", x["species"]),
                                          target=x["desc"], base=bs[x["species"]]["desc"])
              for x in t["trees"] if x["species"] in bs and bs[x["species"]]["stage"] != x["stage"]]
+    # 선택 항목 trees.keep: 단계가 같은 수목도 "그대로 둬라"를 적는다(겨울 짚 보온이 꽃밭으로 바뀌는 환각 방지)
+    if T["trees"].get("keep"):
+        items += [T["trees"]["keep"].format(species=x.get("name_en", x["species"]), target=x["desc"])
+                  for x in t["trees"] if x["species"] in bs and bs[x["species"]]["stage"] == x["stage"]]
     return T["trees"]["text"].format(items=T["trees"]["joiner"].join(items)) if items else ""
 
 

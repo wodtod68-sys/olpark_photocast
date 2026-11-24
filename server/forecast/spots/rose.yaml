@@ -27,7 +27,7 @@ airkorea_station: 송파구
 
 # 조명: 사진에 있는 조명 묘사 / none(조명 없음) / 줄 없음(모름 → 조명 문장 안 씀). 켜지는 시각은 rules.yaml lamps
 lamps:                    # 11/22 17:35 실측: 화단 정원등·가로등이 많고 밝게 번짐 → strong
-  desc: "all the small black garden lamps on the edges of the rose beds (several on each side of the paths) and the street lights on poles behind the sculpture"
+  desc: "the small black garden lamps that are already in the original photo on the edges of the beds, and the street lights on poles behind the sculpture"
   glow: strong
 
 scene_terms:

@@ -42,7 +42,7 @@ lamps:
   lit: "Lamps: {lamps} are switched on{glow}. Light only these existing lamps; do not add any new lamps, lights or lit windows."
   glow:     # 스팟 yaml lamps.glow 로 고른다
     bright: " and glowing with bright white light"
-    strong: ", and they are the brightest things in the photo: every single lamp glows as an intense, almost overexposed pure-white spot with a clear glowing halo, like strong LEDs seen by a phone camera at dusk. The light is cool white, not warm or yellow, and it does not floodlight the paths"
+    strong: ", and they are the brightest things in the photo: every lamp glows at the same strong brightness, an intense, almost overexposed pure-white spot with a clear glowing halo, like identical LEDs seen by a phone camera at dusk; none of them is dim or switched off. The light is cool white, not warm or yellow, and it does not floodlight the paths"
     dim: ", but they are small and dim: just a few soft points of light with only a faint glow on the ground right around each lamp, and the rest of the scene is not lit by them"
   no_lamps: "There are no lamps in this scene; do not add any lights, lamps or lit windows."
 precip_intensity: {light: " lightly", moderate: "", heavy: " heavily"}
@@ -153,6 +153,7 @@ trees:
   text: "Trees: {items}."
   joiner: "; "
   change: "make the {species} show {target} instead of {base}"
+  keep: "keep the {species} exactly as they are in the original ({target})"
 
 # ---------------- 9) 지면 ----------------
 ground:

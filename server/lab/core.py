@@ -313,9 +313,10 @@ def file_sha(p: Path) -> str:
     return hashlib.sha256(p.read_bytes()).hexdigest()
 
 
-def cache_key(prompt: str, base_path: Path, model_id: str, sample: int) -> str:
+def cache_key(prompt: str, base_path: Path, model_id: str, sample: int, ref: Path | None = None) -> str:
     h = hashlib.sha256()
-    for part in (prompt, file_sha(base_path), model_id, str(sample)):
+    # 참조 사진은 있을 때만 넣는다(없는 경우의 기존 캐시 키는 그대로)
+    for part in (prompt, file_sha(base_path), model_id, str(sample)) + ((file_sha(ref),) if ref else ()):
         h.update(part.encode())
         h.update(b"\0")
     return h.hexdigest()[:32]
@@ -328,11 +329,11 @@ def save_jpeg(data: bytes, dst: Path) -> None:
     im.save(dst, "JPEG", quality=SAVE_QUALITY)
 
 
-def plan_samples(prompt: str, base_path: Path, model: str, n: int) -> list[tuple[int, str, bool]]:
+def plan_samples(prompt: str, base_path: Path, model: str, n: int, ref: Path | None = None) -> list[tuple[int, str, bool]]:
     mid = model_info(model)["id"]
     out = []
     for i in range(n):
-        k = cache_key(prompt, base_path, mid, i)
+        k = cache_key(prompt, base_path, mid, i, ref)
         out.append((i, k, (IMG_DIR / f"{k}.jpg").exists()))
     return out
 
@@ -347,7 +348,7 @@ def generate(user: str, spot_id: str, dt_text: str, overrides: dict | None, temp
     t = get_template(template_id)
     c = run_compose(spot_id, dt_text, overrides, template_texts(t, edits))
     base_path = c["spot"]["base_image_path"]
-    plan = plan_samples(c["prompt"], base_path, model, n)
+    plan = plan_samples(c["prompt"], base_path, model, n, c["ref"])
     need = sum(1 for _, _, hit in plan if not hit)
     with _usage_lock:
         if need > remaining(user):
@@ -410,7 +411,7 @@ def grid_plan(template_id: int, date: str, model: str) -> dict:
             cell = dict(spot=sid, cond=name, datetime=f"{date}T{hhmm}", overrides=ov)
             try:
                 c = run_compose(sid, cell["datetime"], ov, texts)
-                (_, key, hit), = plan_samples(c["prompt"], c["spot"]["base_image_path"], model, 1)
+                (_, key, hit), = plan_samples(c["prompt"], c["spot"]["base_image_path"], model, 1, c["ref"])
                 cell.update(cached=hit, url=f"/api/lab/files/images/{key}.jpg" if hit else None,
                             summary=c["summary_ko"])
             except Exception as e:

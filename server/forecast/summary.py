@@ -18,6 +18,9 @@ def summary_ko(state: dict) -> str:
     else:
         sun = K["sun"]["up"].format(elev=int(round(L["elev"])), direction=K["direction"][d["light_direction"]])
     items = [sun]
+    ly = ((state.get("source") or {}).get("weather") or {}).get("last_year_date")
+    if ly:
+        items.insert(0, K["last_year"].format(date=f"{int(ly[5:7])}/{int(ly[8:10])}", year=ly[:4]))
     pf = state["precip"]["form"]
     items.append(K["precip"][pf] if pf in K["precip"] else K["sky"].get(state["sky"], ""))
     if state["haze"]["stage"] != "H4" or state["sky"] != "fog":

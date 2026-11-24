@@ -91,4 +91,5 @@ sources:
   kma_max_hours_ahead: 72     # 단기예보 범위
   archive_lag_days: 5         # ERA5 아카이브 지연. 이보다 최근 과거는 forecast API(past_days)로
   forecast_max_days: 16
+  last_year_after_days: 14     # 이보다 먼 미래는 예보 대신 '작년 같은 날·같은 시각' ERA5 날씨(계절감용)
   forecast_cache_ttl_s: 3600

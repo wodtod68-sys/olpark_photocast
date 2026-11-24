@@ -178,9 +178,32 @@ def at_time(h: pd.DataFrame, dt: datetime) -> dict:
     return out
 
 
-def weather(spot: dict, dt: datetime) -> dict:
-    """소스 우선순위: 1) 기상청 단기예보(한국·72시간 이내 미래·키 있음) 2) Open-Meteo 예보 3) 아카이브(과거)."""
+def last_year_dt(dt: datetime) -> datetime | None:
+    """예보 범위(last_year_after_days) 밖 미래면 아카이브에 있는 가장 가까운 해의 같은 날·같은 현지 시각. 아니면 None."""
     S = rules()["sources"]
+    now = datetime.now(UTC)
+    if (dt.astimezone(UTC) - now).total_seconds() <= 86400 * S.get("last_year_after_days", 14):
+        return None
+    for back in range(1, 10):
+        y = dt.year - back
+        a = dt.replace(year=y, day=28) if (dt.month, dt.day) == (2, 29) else dt.replace(year=y)
+        if (now - a.astimezone(UTC)).days > S["archive_lag_days"]:
+            return a
+    return None
+
+
+def weather(spot: dict, dt: datetime) -> dict:
+    """소스 우선순위: 1) 기상청 단기예보(한국·72시간 이내 미래·키 있음) 2) Open-Meteo 예보 3) 아카이브(과거).
+    last_year_after_days보다 먼 미래는 작년 같은 날·같은 시각의 아카이브 날씨(계절감용)."""
+    S = rules()["sources"]
+    ly = last_year_dt(dt)
+    if ly is not None:
+        om = om_archive(spot, ly)
+        if om is None:
+            raise ValueError("작년 같은 날의 날씨 자료를 불러오지 못했어요. 잠시 뒤 다시 해 주세요.")
+        w = at_time(om, ly)
+        w["source"] = {"main": f"last_year_archive(ERA5 {ly:%Y-%m-%d %H:%M})", "last_year_date": f"{ly:%Y-%m-%d}"}
+        return w
     now = datetime.now(UTC)
     hours_ahead = (dt.astimezone(UTC) - now).total_seconds() / 3600
     src = {}
@@ -210,7 +233,7 @@ def weather(spot: dict, dt: datetime) -> dict:
             w = o
             src["main"] = kind
     if not w:
-        raise ValueError("이 날짜·시각의 날씨 자료가 없어요 (예보는 약 16일 뒤까지만 있어요). "
+        raise ValueError("이 날짜·시각의 날씨 자료가 없어요. "
                          "날짜를 바꾸거나 실험실에서 '맑은 날 가정'을 켜 주세요.")
     w["source"] = src
     return w
@@ -246,6 +269,9 @@ def air_quality(spot: dict, dt: datetime) -> dict:
             log.warning(f"에어코리아 실패 → Open-Meteo로: {ex}")
     elif not key:
         log.info("에어코리아: AIRKOREA_SERVICE_KEY 없음 → Open-Meteo 대기질")
+    ly = last_year_dt(dt)
+    if ly is not None:
+        dt = ly    # 먼 미래는 날씨와 같이 작년 같은 날 대기질
     try:
         d = dt.astimezone(UTC).date()
         past = (datetime.now(UTC) - dt.astimezone(UTC)).days > 7
@@ -256,7 +282,8 @@ def air_quality(spot: dict, dt: datetime) -> dict:
         fr = _om_frame(js)
         o = at_time(fr, dt)
         if o.get("pm2_5") is not None:
-            return dict(pm25=o["pm2_5"], pm10=o.get("pm10"), source="open-meteo_air_quality(CAMS)")
+            return dict(pm25=o["pm2_5"], pm10=o.get("pm10"),
+                        source="open-meteo_air_quality(CAMS" + (f" {ly:%Y-%m-%d})" if ly is not None else ")"))
         have = fr["pm2_5"].dropna()
         log.info("Open-Meteo 대기질: 해당 시각 자료 없음 "
                  + (f"(자료 범위 {have.index[0]:%m-%d %H시}~{have.index[-1]:%m-%d %H시} UTC)" if len(have) else "(이 기간 자료 없음)"))

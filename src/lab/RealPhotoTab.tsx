@@ -111,7 +111,7 @@ export function RealPhotoTab({ me, onUsage }: { me: Me; onUsage: () => void }) {
         </label>
         <label className={s.check}>
           <input type="checkbox" checked={gen} onChange={(e) => setGen(e.target.checked)} />
-          그 시각 예측이 없으면 새로 만들기 (템플릿당 ${price}, 오늘 남은 {me.remaining}장)
+          그 시각 예측이 없으면 새로 만들기 (템플릿당 ${price}{me.daily_limit ? `, 오늘 남은 ${me.remaining}장` : ''})
         </label>
         <button className={s.btnBig} disabled={!file || busy} onClick={upload}>
           {busy ? '정렬·채점 중…' : '올리고 채점'}

@@ -50,6 +50,7 @@ def price(model: str) -> float:
 
 
 def daily_limit() -> int:
+    """0 = 제한 없음 (server/.env LAB_DAILY_LIMIT=0)."""
     v = env_key("LAB_DAILY_LIMIT")
     return int(v) if v and v.isdigit() else 20
 
@@ -302,6 +303,8 @@ def used_today(user: str) -> int:
 
 
 def remaining(user: str) -> int:
+    if daily_limit() == 0:
+        return 10**6          # 제한 없음
     return max(0, daily_limit() - used_today(user))
 
 

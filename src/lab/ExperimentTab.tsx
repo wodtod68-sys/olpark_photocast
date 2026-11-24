@@ -456,7 +456,7 @@ export function ExperimentTab({ me, onUsage }: { me: Me; onUsage: () => void }) 
           </label>
         </div>
         <p className={s.cost}>
-          예상 비용 최대 <b>${(price * n).toFixed(3)}</b> · 오늘 남은 {me.remaining}장
+          예상 비용 최대 <b>${(price * n).toFixed(3)}</b> {me.daily_limit ? ` · 오늘 남은 ${me.remaining}장` : ''}
           <br />
           <span className={s.muted}>같은 프롬프트·샘플은 캐시라 0원. 한 장에 15~20초.</span>
         </p>

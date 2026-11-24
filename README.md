@@ -51,7 +51,7 @@ DAILY_LIMIT=30
 # 프롬프트 실험실: 공용 비밀번호, 사용자 이름(쉼표), 사람당 하루 생성 수
 LAB_PASSCODE=...
 LAB_USERS=세환,친구
-LAB_DAILY_LIMIT=20
+LAB_DAILY_LIMIT=20        # 0 = 제한 없음
 EOF
 chmod 600 server/.env
 

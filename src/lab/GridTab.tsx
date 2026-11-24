@@ -147,7 +147,7 @@ export function GridTab({ me, onUsage }: { me: Me; onUsage: () => void }) {
       {plan && (
         <div className={s.confirm}>
           <p>
-            <b>{plan.template_name}</b> · {plan.date} · {plan.model}: 새로 만들 <b>{plan.n_new}장</b>, 비용 약 <b>${plan.cost_usd}</b> (오늘 남은 {plan.remaining}장)
+            <b>{plan.template_name}</b> · {plan.date} · {plan.model}: 새로 만들 <b>{plan.n_new}장</b>, 비용 약 <b>${plan.cost_usd}</b> {me.daily_limit ? `(오늘 남은 ${plan.remaining}장)` : ''}
           </p>
           <ul className={s.small}>
             {plan.cells.map((c) => (

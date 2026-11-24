@@ -112,7 +112,7 @@ export default function LabApp() {
         <div className={s.meta}>
           <b>{me.user}</b>
           <span>
-            오늘 남은 생성 {me.remaining}/{me.daily_limit}장
+            {me.daily_limit ? `오늘 남은 생성 ${me.remaining}/${me.daily_limit}장` : '생성 수 제한 없음'}
           </span>
           {storage && (
             <span title={`파일 ${storage.files}개`}>

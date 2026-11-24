@@ -26,8 +26,10 @@ airkorea_region: 서울
 airkorea_station: 송파구
 
 # 조명: 사진에 있는 조명 묘사 / none(조명 없음) / 줄 없음(모름 → 조명 문장 안 씀). 켜지는 시각은 rules.yaml lamps
+# 묘사는 일반적으로(#34·#35 때 문구). 개수·위치("양쪽에 여러 개", "가장자리마다")나 금지어("bollards")를 쓰면
+# 모델이 그 수를 채우려고 새 등을 세운다(#36·#41·#42·#43).
 lamps:                    # 11/22 17:35 실측: 화단 정원등·가로등이 많고 밝게 번짐 → strong
-  desc: "the small black garden lamps that are already in the original photo (small lamp heads on short curved stems at the edges of the beds; do not add bollards or new lamp posts), and the street lights on poles behind the sculpture"
+  desc: "the garden lamps along the rose beds and the street lights behind them"
   glow: strong
 
 scene_terms:

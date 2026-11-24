@@ -272,16 +272,18 @@ def promote(tid: int, confirm: bool = Body(False, embed=True), user: str = Depen
 # ---------------- 그리드 ----------------
 @router.post("/grid")
 async def grid(template_id: int = Body(...), date: str | None = Body(None), model: str = Body(core.DEFAULT_MODEL),
-               confirm: bool = Body(False), user: str = Depends(current_user)):
+               confirm: bool = Body(False), suite: str = Body("basic"), user: str = Depends(current_user)):
     date = date or (datetime.now(core.KST) + timedelta(days=1)).date().isoformat()
     if model not in MODELS:
         raise HTTPException(400, f"모델은 {list(MODELS)} 중 하나")
+    if suite not in core.SUITES:
+        raise HTTPException(400, f"suite는 {list(core.SUITES)} 중 하나")
     if not confirm:
-        plan = await run_in_threadpool(core.grid_plan, template_id, date, model)
+        plan = await run_in_threadpool(core.grid_plan, template_id, date, model, suite)
         plan.update(remaining=core.remaining(user), confirm_needed=True)
         return plan
     try:
-        return dict(job=await run_in_threadpool(core.grid_run, user, template_id, date, model))
+        return dict(job=await run_in_threadpool(core.grid_run, user, template_id, date, model, suite))
     except PermissionError as e:
         raise HTTPException(429, str(e))
 
@@ -295,15 +297,23 @@ def grid_job(job: str, user: str = Depends(current_user)):
 
 
 @router.get("/grid/matrix")
-def grid_matrix(template_id: int, date: str, user: str = Depends(current_user)):
-    rows = db.q("SELECT e.spot, e.grid_cell, e.target_datetime, i.id, i.path, i.scores FROM experiments e"
-                " JOIN images i ON i.experiment_id = e.id WHERE e.template_id=? AND e.grid_cell IS NOT NULL"
-                " AND substr(e.target_datetime, 1, 10)=? ORDER BY i.id DESC", (template_id, date))
+def grid_matrix(template_id: int, date: str, suite: str = "basic", model: str | None = None,
+                user: str = Depends(current_user)):
+    names = [c[0] for c in core.SUITES.get(suite, core.GRID_CONDS)]
+    mid = core.model_info(model)["id"] if model in MODELS else None
+    sql = ("SELECT e.spot, e.grid_cell, e.target_datetime, i.id, i.path, i.scores FROM experiments e"
+           " JOIN images i ON i.experiment_id = e.id WHERE e.template_id=? AND e.grid_cell IS NOT NULL"
+           + (" AND e.model=?" if mid else ""))
+    args = [template_id] + ([mid] if mid else [])
+    if suite == "basic":
+        sql += " AND substr(e.target_datetime, 1, 10)=?"
+        args.append(date)
+    rows = [r for r in db.q(sql + " ORDER BY i.id DESC", tuple(args)) if r["grid_cell"] in names]
     cells = {}
     for r in rows:
         cells.setdefault(f"{r['spot']}|{r['grid_cell']}", dict(image_id=r["id"], url=f"/api/lab/files/{r['path']}",
                                                               scores=db.unj(r["scores"], {})))
-    return dict(spots=core.SPOT_IDS, conds=[c[0] for c in core.GRID_CONDS], cells=cells)
+    return dict(spots=core.SPOT_IDS, conds=names, cells=cells)
 
 
 # ---------------- 실제 사진 ----------------

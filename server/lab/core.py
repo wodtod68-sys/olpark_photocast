@@ -404,16 +404,51 @@ GRID_CONDS = [
     ("overcast_1200", "12:00", {"assume": "clear", "direct_sun": "D0", "sky": "overcast"}),
     ("rain_1200", "12:00", {"assume": "clear", "precip": "rain:moderate", "ground": ["wet"]}),
 ]
+# 검증 세트: 조건별 대표 장면. (이름, "YYYY-MM-DDTHH:MM", 덮어쓰기). 날짜를 조건마다 고정해서
+# 언제 돌려도 같은 조건. 모두 "맑은 날 가정"에서 시작해 바꾸려는 요인 하나(또는 조합)만 덮어쓴다.
+# 11/22 = 기준 사진·실제 사진을 찍은 날(답사 기록과 비교 가능).
+_C = {"assume": "clear"}
+VALIDATION_CONDS = [
+    # 시간 (11/22 맑음)
+    ("v_t0800", "2026-11-22T08:00", _C),                                  # 해 뜬 직후 낮은 해
+    ("v_t1200", "2026-11-22T12:00", _C),                                  # 한낮
+    ("v_t1640", "2026-11-22T16:40", _C),                                  # 골든아워
+    ("v_t1735", "2026-11-22T17:35", _C),                                  # 해 진 뒤 박명 + 조명 (실제 사진 있음)
+    ("v_t2030", "2026-11-22T20:30", _C),                                  # 밤
+    # 날씨 (11/22 12시)
+    ("v_overcast", "2026-11-22T12:00", {**_C, "direct_sun": "D0", "sky": "overcast"}),
+    ("v_rain_light", "2026-11-22T12:00", {**_C, "precip": "rain:light", "ground": ["wet"]}),
+    ("v_rain_heavy", "2026-11-22T12:00", {**_C, "precip": "rain:heavy", "ground": ["wet"]}),
+    ("v_snowfall", "2026-11-22T12:00", {**_C, "precip": "snow:moderate", "sky": "overcast", "ground": ["snow"]}),
+    ("v_snow_after", "2026-11-22T12:00", {**_C, "ground": ["snow"]}),     # 눈 그친 뒤 맑음
+    ("v_fog", "2026-11-22T08:00", {**_C, "haze": "H4", "sky": "fog", "direct_sun": "D0"}),
+    ("v_haze", "2026-11-22T12:00", {**_C, "haze": "H3"}),                 # 짙은 연무·미세먼지
+    ("v_rain_night", "2026-11-22T20:30", {**_C, "precip": "rain:moderate", "ground": ["wet"]}),  # 비 + 밤 + 조명
+    # 계절 (맑은 한낮)
+    ("v_s0115", "2027-01-15T12:00", _C),                                  # 한겨울
+    ("v_s0415", "2027-04-15T12:00", _C),                                  # 봄 새잎
+    ("v_s0525", "2027-05-25T12:00", _C),                                  # 장미·양귀비 절정 (참조 사진)
+    ("v_s0720", "2027-07-20T12:00", _C),                                  # 한여름 초록
+    ("v_s1030", "2026-10-30T12:00", _C),                                  # 단풍 절정·코스모스
+]
+SUITES = {"basic": GRID_CONDS, "validation": VALIDATION_CONDS}
 _jobs: dict[str, dict] = {}
 
 
-def grid_plan(template_id: int, date: str, model: str) -> dict:
+def suite_cells(suite: str, date: str) -> list[tuple[str, str, dict]]:
+    """basic은 고른 날짜 + 시각, validation은 조건마다 고정 날짜."""
+    if suite == "validation":
+        return VALIDATION_CONDS
+    return [(n, f"{date}T{hhmm}", ov) for n, hhmm, ov in GRID_CONDS]
+
+
+def grid_plan(template_id: int, date: str, model: str, suite: str = "basic") -> dict:
     t = get_template(template_id)
     texts = template_texts(t)
     cells = []
     for sid in SPOT_IDS:
-        for name, hhmm, ov in GRID_CONDS:
-            cell = dict(spot=sid, cond=name, datetime=f"{date}T{hhmm}", overrides=ov)
+        for name, dt, ov in suite_cells(suite, date):
+            cell = dict(spot=sid, cond=name, datetime=dt, overrides=ov)
             try:
                 c = run_compose(sid, cell["datetime"], ov, texts)
                 (_, key, hit), = plan_samples(c["prompt"], c["spot"]["base_image_path"], model, 1, c["ref"])
@@ -423,12 +458,12 @@ def grid_plan(template_id: int, date: str, model: str) -> dict:
                 cell.update(error=str(e)[:200], cached=False)
             cells.append(cell)
     need = sum(1 for c in cells if not c["cached"] and not c.get("error"))
-    return dict(template_id=t["id"], template_name=t["name"], date=date, model=model_info(model)["id"],
+    return dict(template_id=t["id"], template_name=t["name"], date=date, suite=suite, model=model_info(model)["id"],
                 cells=cells, n_new=need, cost_usd=round(need * price(model), 3), price=price(model))
 
 
-def grid_run(user: str, template_id: int, date: str, model: str) -> str:
-    plan = grid_plan(template_id, date, model)
+def grid_run(user: str, template_id: int, date: str, model: str, suite: str = "basic") -> str:
+    plan = grid_plan(template_id, date, model, suite)
     if plan["n_new"] > remaining(user):
         raise PermissionError(f"새로 만들 {plan['n_new']}장이 오늘 남은 {remaining(user)}장보다 많아요.")
     job = uuid.uuid4().hex[:12]

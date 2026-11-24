@@ -23,6 +23,7 @@ export function GridTab({ me, onUsage }: { me: Me; onUsage: () => void }) {
   const [tid, setTid] = useState<number | null>(null);
   const [date, setDate] = useState(tomorrowKST());
   const [model, setModel] = useState(me.default_model);
+  const [suite, setSuite] = useState<'basic' | 'validation'>('basic');
   const [plan, setPlan] = useState<Plan | null>(null);
   const [job, setJob] = useState<{ status: string; done: number; total: number; errors: string[] } | null>(null);
   const [mine, setMine] = useState<Matrix | null>(null);
@@ -41,17 +42,18 @@ export function GridTab({ me, onUsage }: { me: Me; onUsage: () => void }) {
   }, []);
 
   const loadMatrices = () => {
-    if (tid) lab<Matrix>(`/grid/matrix?template_id=${tid}&date=${date}`).then(setMine);
-    if (sharedT) lab<Matrix>(`/grid/matrix?template_id=${sharedT.id}&date=${date}`).then(setShared);
+    const q = `&date=${date}&suite=${suite}` + (suite === 'validation' ? `&model=${model}` : '');
+    if (tid) lab<Matrix>(`/grid/matrix?template_id=${tid}${q}`).then(setMine);
+    if (sharedT) lab<Matrix>(`/grid/matrix?template_id=${sharedT.id}${q}`).then(setShared);
   };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(loadMatrices, [tid, date, sharedT?.id]);
+  useEffect(loadMatrices, [tid, date, sharedT?.id, suite, model]);
 
   const estimate = async () => {
     setBusy(true);
     setErr('');
     try {
-      setPlan(await lab<Plan>('/grid', { body: { template_id: tid, date, model, confirm: false } }));
+      setPlan(await lab<Plan>('/grid', { body: { template_id: tid, date, model, suite, confirm: false } }));
     } catch (e) {
       setErr((e as Error).message);
     } finally {
@@ -62,7 +64,7 @@ export function GridTab({ me, onUsage }: { me: Me; onUsage: () => void }) {
   const run = async () => {
     if (!plan || !window.confirm(`${plan.n_new}장을 새로 만들어요. 비용 약 $${plan.cost_usd}. 실행할까요?`)) return;
     try {
-      const { job: id } = await lab('/grid', { body: { template_id: tid, date, model, confirm: true } });
+      const { job: id } = await lab('/grid', { body: { template_id: tid, date, model, suite, confirm: true } });
       const poll = async () => {
         const j = await lab(`/grid/job/${id}`);
         setJob(j);
@@ -78,7 +80,7 @@ export function GridTab({ me, onUsage }: { me: Me; onUsage: () => void }) {
 
   const spotName = (id: string) => spots.find((x) => x.id === id)?.name ?? id;
   const grid = (m: Matrix | null, title: string) => (
-    <div className={s.col}>
+    <div className={s.col} style={{ overflowX: 'auto' }}>
       <h3 className={s.h3}>{title}</h3>
       {m && (
         <table className={s.grid}>
@@ -118,11 +120,22 @@ export function GridTab({ me, onUsage }: { me: Me; onUsage: () => void }) {
 
   return (
     <div className={s.single}>
-      <p className={s.muted}>
-        4곳 × 대표 조건 5개(07시 · 12시 · 16:30 골든 · 흐림 · 비). 모두 "맑은 날 가정"에서 시작해 날짜의 실제 예보와 상관없이 같은 조건으로 비교해요.
-        한 번 돌리면 최대 20장(하루 한도 전부)이니 둘이 상의하고 돌리세요.
-      </p>
+      {suite === 'basic' ? (
+        <p className={s.muted}>
+          4곳 × 대표 조건 5개(07시 · 12시 · 16:30 골든 · 흐림 · 비). 모두 "맑은 날 가정"에서 시작해 날짜의 실제 예보와 상관없이 같은 조건으로 비교해요.
+          한 번 돌리면 최대 20장이니 둘이 상의하고 돌리세요.
+        </p>
+      ) : (
+        <p className={s.muted}>
+          검증 세트: 4곳 × 18조건 = 72장. 시간 5(08·12·16:40·17:35·20:30), 날씨 8(흐림·약한 비·강한 비·눈 내림·눈 갠 뒤·안개·짙은 연무·비 오는 밤),
+          계절 5(1·4·5말·7·10말월 맑은 한낮). 조건마다 날짜가 고정이라 언제 돌려도 같아요. 결과는 모델별로 따로 보여요.
+        </p>
+      )}
       <div className={s.filters}>
+        <select value={suite} onChange={(e) => (setSuite(e.target.value as 'basic' | 'validation'), setPlan(null))}>
+          <option value="basic">기본 그리드 (20장)</option>
+          <option value="validation">검증 세트 (72장)</option>
+        </select>
         <select value={tid ?? ''} onChange={(e) => (setTid(Number(e.target.value)), setPlan(null))}>
           {templates.map((t) => (
             <option key={t.id} value={t.id}>
@@ -131,7 +144,7 @@ export function GridTab({ me, onUsage }: { me: Me; onUsage: () => void }) {
             </option>
           ))}
         </select>
-        <input type="date" value={date} onChange={(e) => (setDate(e.target.value), setPlan(null))} />
+        {suite === 'basic' && <input type="date" value={date} onChange={(e) => (setDate(e.target.value), setPlan(null))} />}
         <select value={model} onChange={(e) => (setModel(e.target.value), setPlan(null))}>
           {Object.entries(me.models).map(([k, m]) => (
             <option key={k} value={k}>

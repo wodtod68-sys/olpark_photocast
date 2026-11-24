@@ -42,6 +42,7 @@ lamps:
   lit: "Lamps: {lamps} are switched on{glow}. Light only these existing lamps; do not add any new lamps, lights or lit windows."
   glow:     # 스팟 yaml lamps.glow 로 고른다
     bright: " and glowing with bright white light"
+    strong: ": every one of them is clearly lit, each a bright white point of light with a soft glowing halo as in a phone photo, casting small pools of light on the ground and paths right next to them"
     dim: ", but they are small and dim: just a few soft points of light with only a faint glow on the ground right around each lamp, and the rest of the scene is not lit by them"
   no_lamps: "There are no lamps in this scene; do not add any lights, lamps or lit windows."
 precip_intensity: {light: " lightly", moderate: "", heavy: " heavily"}

@@ -25,6 +25,9 @@ typical_pm25: 20
 airkorea_region: 서울
 airkorea_station: 송파구
 
+# 조명: 사진에 있는 조명 묘사 / none(조명 없음) / 줄 없음(모름 → 조명 문장 안 씀). 켜지는 시각은 rules.yaml lamps
+lamps: none
+
 scene_terms:
   subjects: "the lone tree, its red-and-white support poles, the people on the far ridge, "
   subjects_short: "the lone tree"

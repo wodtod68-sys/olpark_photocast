@@ -26,5 +26,7 @@ def summary_ko(state: dict) -> str:
     if state["haze"]["stage"] != "H4" or state["sky"] != "fog":
         items.append(K["haze"][state["haze"]["stage"]])
     items += [K["ground"][g] for g in state["ground"] if g in K["ground"]]
+    if (state.get("lamps") or {}).get("state") == "on" and K.get("lamps_on"):
+        items.append(K["lamps_on"])
     items += [K["tree"].format(name=t["name_ko"], stage=t["stage_ko"]) for t in state["trees"]]
     return K["joiner"].join(i for i in items if i)

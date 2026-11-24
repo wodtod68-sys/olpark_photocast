@@ -175,6 +175,7 @@ VALID_OVERRIDES = {
     "haze": ["H0", "H1", "H2", "H3", "H4"],
     "sky": ["clear", "partly", "high", "low_many", "overcast", "golden", "twilight", "night", "rain", "fog"],
     "precip": ["none"] + [f"{f}:{i}" for f in ("rain", "snow") for i in ("light", "moderate", "heavy")] + ["rain", "snow"],
+    "lamps": ["on", "off"],
 }
 
 
@@ -222,7 +223,7 @@ def validate(texts: dict[str, str]) -> dict[str, dict]:
         parsed[k] = d
     t = parsed.get("templates_yaml")
     if t:
-        bad = [b for b in t["order"] if b not in ("time_change", "preserve", "lighting", "consequences", "exposure",
+        bad = [b for b in t["order"] if b not in ("time_change", "preserve", "lighting", "lamps", "consequences", "exposure",
                                                     "sky_air", "trees", "ground", "no_beautify")]
         if bad:
             raise ValueError(f"templates.yaml order에 알 수 없는 블록: {bad}")
@@ -283,6 +284,7 @@ def state_view(s: dict) -> dict:
         direct_sun=s["direct_sun"]["stage"], haze=s["haze"]["stage"], sky=s["sky"],
         precip=s["precip"]["form"] + (f":{s['precip']['intensity']}" if s["precip"].get("intensity") else ""),
         ground=s["ground"], trees={t["species"]: t["stage"] for t in s["trees"]},
+        lamps=(s.get("lamps") or {}).get("state", "unknown"),
         trees_ko={t["species"]: f"{t['name_ko']} {t['stage_ko']}" for t in s["trees"]},
         landmarks={l["name"]: l["visibility"] for l in s["landmarks"]},
     )

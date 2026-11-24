@@ -214,6 +214,18 @@ def block_trees(T, b, t) -> str:
     return T["trees"]["text"].format(items=T["trees"]["joiner"].join(items)) if items else ""
 
 
+def block_lamps(T, t) -> str:
+    """템플릿에 lamps 키가 없으면(예전 템플릿) 빈 문장."""
+    Lp, lm = T.get("lamps"), t.get("lamps") or {}
+    if not Lp:
+        return ""
+    if lm.get("state") == "on":
+        return Lp["lit"].format(lamps=lm["desc"])
+    if lm.get("state") == "none" and lm.get("dark"):
+        return Lp["no_lamps"]
+    return ""
+
+
 def block_ground(T, b, t) -> str:
     G = T["ground"]
     bg, tg = set(b["ground"]), set(t["ground"])
@@ -235,6 +247,7 @@ def build_prompt(spot: dict, base_state: dict, tgt_state: dict, dl: dict, base_d
         "time_change": lambda T: block_time(T, b_dt, t_dt),
         "preserve": lambda T: T["preserve"].format(subjects=terms.get("subjects", "")),
         "lighting": lambda T: block_lighting(T, base_state, tgt_state, mode),
+        "lamps": lambda T: block_lamps(T, tgt_state),
         "consequences": lambda T: block_consequences(T, base_state, tgt_state, terms) if mode == "sun" else "",
         "exposure": lambda T: "" if dl.get("override") else block_exposure(T, dl),
         "sky_air": lambda T: block_sky_air(T, base_state, tgt_state, t_dt),

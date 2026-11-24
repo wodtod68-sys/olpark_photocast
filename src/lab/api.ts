@@ -69,6 +69,7 @@ export interface StateView {
   trees: Record<string, string>;
   trees_ko: Record<string, string>;
   landmarks: Record<string, string>;
+  lamps: string;
 }
 
 export interface Composed {
@@ -90,6 +91,7 @@ export interface Composed {
     sky: string[];
     precip: string[];
     ground: string[];
+    lamps: string[];
     trees: Record<string, string[]>;
   };
   delta: { delta: Record<string, number>; rules_version: string };

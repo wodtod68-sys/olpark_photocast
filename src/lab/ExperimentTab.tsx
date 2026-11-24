@@ -29,6 +29,7 @@ const STATE_ROWS: { key: string; label: string }[] = [
   { key: 'haze', label: '연무' },
   { key: 'sky', label: '하늘' },
   { key: 'precip', label: '강수' },
+  { key: 'lamps', label: '조명' },
 ];
 
 export function ExperimentTab({ me, onUsage }: { me: Me; onUsage: () => void }) {
@@ -256,7 +257,7 @@ export function ExperimentTab({ me, onUsage }: { me: Me; onUsage: () => void }) 
                   </label>
                 </td>
               </tr>
-              {STATE_ROWS.map(({ key, label }) => (
+              {STATE_ROWS.filter(({ key }) => (data.choices as unknown as Record<string, string[]>)[key]?.length).map(({ key, label }) => (
                 <tr key={key} className={ov[key] ? s.overridden : undefined}>
                   <th>{label}</th>
                   <td>

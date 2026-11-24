@@ -120,6 +120,17 @@ def landmark_states(spot: dict, vis_km: float) -> list[dict]:
     return out
 
 
+def lamp_state(spot: dict, elev: float) -> dict:
+    """스팟 yaml의 lamps: 있는 조명 묘사(문자열) / "none"(조명 없음) / 없으면 unknown(문장 안 씀)."""
+    desc = spot.get("lamps")
+    if not desc:
+        return dict(state="unknown", desc=None)
+    if desc == "none":
+        return dict(state="none", desc=None, dark=elev < (rules().get("lamps") or {}).get("on_below_elev", -1.0))
+    on = elev < (rules().get("lamps") or {}).get("on_below_elev", -1.0)
+    return dict(state="on" if on else "off", desc=desc)
+
+
 def build_state(spot: dict, cond: dict) -> dict:
     sun, w, air = cond["sun"], cond["weather"], cond["air"]
     L = light_stage(sun["elev"])
@@ -145,6 +156,7 @@ def build_state(spot: dict, cond: dict) -> dict:
         ground=ground_state(w, L["stage"], cond["trees"]),
         trees=cond["trees"],
         landmarks=landmark_states(spot, vkm),
+        lamps=lamp_state(spot, sun["elev"]),
         source=dict(weather=w.get("source"), air=air.get("source"),
                     trees="phenology.yaml(seoul_normal_estimate)" if cond["trees"] else None,
                     sun="pvlib"),
@@ -201,7 +213,7 @@ def _match(pattern: str, key: str) -> bool:
 
 
 # ---------------- 덮어쓰기 (실험실) ----------------
-OVERRIDABLE = ("direct_sun", "haze", "sky", "precip", "ground", "trees")
+OVERRIDABLE = ("direct_sun", "haze", "sky", "precip", "ground", "trees", "lamps")
 
 
 def override_choices(state: dict) -> dict:
@@ -215,6 +227,7 @@ def override_choices(state: dict) -> dict:
         sky=["clear", "partly", "high", "low_many", "overcast", "golden", "twilight", "night", "rain", "fog"],
         precip=["none", "rain:light", "rain:moderate", "rain:heavy", "snow:light", "snow:moderate", "snow:heavy"],
         ground=["wet", "snow", "frost", "leaves"],
+        lamps=["on", "off"] if state.get("lamps", {}).get("desc") else [],
         trees={t["species"]: [s["name"] for s in cal[t["species"]]["stages"]] for t in state["trees"]},
     )
 
@@ -242,6 +255,8 @@ def apply_overrides(state: dict, ov: dict | None) -> dict:
             s["sky"] = "rain"
     if ov.get("sky"):
         s["sky"] = ov["sky"]
+    if ov.get("lamps") in ("on", "off") and s.get("lamps", {}).get("desc"):
+        s["lamps"] = dict(s["lamps"], state=ov["lamps"])
     if ov.get("ground") is not None:
         s["ground"] = list(ov["ground"])
     if ov.get("trees"):

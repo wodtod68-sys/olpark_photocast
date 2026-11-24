@@ -5,7 +5,7 @@ version: "t0.1"
 
 # 블록 순서. 참고 프롬프트처럼 "Edit this photo to show …"(시간 변화)로 시작한다.
 # lighting 블록은 우선순위 규칙(강수 > 안개 > 흐림 > 밤 > 태양 방향)에 따라 하나만 고른다.
-order: [time_change, preserve, lighting, consequences, exposure, sky_air, trees, ground, no_beautify]
+order: [time_change, preserve, lighting, lamps, consequences, exposure, sky_air, trees, ground, no_beautify]
 
 # ---------------- 2) 시간 변화 ----------------
 time_change:
@@ -37,6 +37,10 @@ lighting:
   overcast: "Lighting: the sun is hidden behind thick clouds; the light is soft and even, with no direct sunlight and no distinct shadows."
   twilight: "Lighting: the sun is just below the horizon; soft blue twilight with no direct sunlight and no shadows; street lights and lit windows may be on."
   night: "Lighting: it is night; the scene is dark, lit only by street lights and windows, with no sunlight."
+# 조명: 해가 on_below_elev(rules.yaml)보다 낮을 때. {lamps} = 스팟 yaml의 lamps 묘사
+lamps:
+  lit: "Lamps: {lamps} are switched on and glowing with bright white light. Light only these existing lamps; do not add any new lamps, lights or lit windows."
+  no_lamps: "There are no lamps in this scene; do not add any lights, lamps or lit windows."
 precip_intensity: {light: " lightly", moderate: "", heavy: " heavily"}
 where:
   ahead_left: "ahead of the camera and to the left"

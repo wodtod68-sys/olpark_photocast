@@ -119,7 +119,11 @@ def base_comparison(T, b: dict, t: dict) -> str:
 def block_lighting(T, b, t, mode) -> str:
     L = T["lighting"]
     if mode in ("rain", "snow"):
-        return L[mode].format(intensity=T["precip_intensity"].get(t["precip"]["intensity"], ""))
+        # precip_intensity.<세기> 는 문자열(비·눈 공통) 또는 {rain: ..., snow: ...}
+        inten = T["precip_intensity"].get(t["precip"]["intensity"], "")
+        if isinstance(inten, dict):
+            inten = inten.get(mode, "")
+        return L[mode].format(intensity=inten)
     if mode != "sun":
         return L[mode]
     d = t["direction"]

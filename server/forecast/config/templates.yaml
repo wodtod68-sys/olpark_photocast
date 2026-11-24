@@ -39,7 +39,10 @@ lighting:
   night: "Lighting: it is night; the scene is dark, lit only by street lights and windows, with no sunlight."
 # 조명: 해가 on_below_elev(rules.yaml)보다 낮을 때. {lamps} = 스팟 yaml의 lamps 묘사
 lamps:
-  lit: "Lamps: {lamps} are switched on and glowing with bright white light. Light only these existing lamps; do not add any new lamps, lights or lit windows."
+  lit: "Lamps: {lamps} are switched on{glow}. Light only these existing lamps; do not add any new lamps, lights or lit windows."
+  glow:     # 스팟 yaml lamps.glow 로 고른다
+    bright: " and glowing with bright white light"
+    dim: ", but they are small and dim: just a few soft points of light with only a faint glow on the ground right around each lamp, and the rest of the scene is not lit by them"
   no_lamps: "There are no lamps in this scene; do not add any lights, lamps or lit windows."
 precip_intensity: {light: " lightly", moderate: "", heavy: " heavily"}
 where:

@@ -220,7 +220,8 @@ def block_lamps(T, t) -> str:
     if not Lp:
         return ""
     if lm.get("state") == "on":
-        return Lp["lit"].format(lamps=lm["desc"])
+        glow = Lp.get("glow")      # 세기 문장(스팟 yaml glow: bright|dim). 예전 템플릿엔 없음
+        return Lp["lit"].format(lamps=lm["desc"], glow=glow.get(lm.get("glow", "bright"), "") if glow else "")
     if lm.get("state") == "none" and lm.get("dark"):
         return Lp["no_lamps"]
     return ""

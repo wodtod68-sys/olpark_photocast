@@ -121,14 +121,15 @@ def landmark_states(spot: dict, vis_km: float) -> list[dict]:
 
 
 def lamp_state(spot: dict, elev: float) -> dict:
-    """스팟 yaml의 lamps: 있는 조명 묘사(문자열) / "none"(조명 없음) / 없으면 unknown(문장 안 씀)."""
-    desc = spot.get("lamps")
+    """스팟 yaml의 lamps: 조명 묘사(문자열) 또는 {desc, glow: bright|dim} / "none"(조명 없음) / 없으면 unknown(문장 안 씀)."""
+    lp = spot.get("lamps")
+    desc, glow = (lp.get("desc"), lp.get("glow", "bright")) if isinstance(lp, dict) else (lp, "bright")
     if not desc:
         return dict(state="unknown", desc=None)
     if desc == "none":
         return dict(state="none", desc=None, dark=elev < (rules().get("lamps") or {}).get("on_below_elev", -1.0))
     on = elev < (rules().get("lamps") or {}).get("on_below_elev", -1.0)
-    return dict(state="on" if on else "off", desc=desc)
+    return dict(state="on" if on else "off", desc=desc, glow=glow)
 
 
 def build_state(spot: dict, cond: dict) -> dict:

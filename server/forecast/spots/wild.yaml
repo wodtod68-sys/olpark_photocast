@@ -27,7 +27,9 @@ airkorea_region: 서울
 airkorea_station: 송파구
 
 # 조명: 사진에 있는 조명 묘사 / none(조명 없음) / 줄 없음(모름 → 조명 문장 안 씀). 켜지는 시각은 rules.yaml lamps
-lamps: "the street lamps along the path and near the pavilion"
+lamps:                    # 가로등이 몇 개 안 되고 장미광장보다 훨씬 어둡다 → dim
+  desc: "the few street lamps along the path and near the pavilion"
+  glow: dim
 
 scene_terms:
   subjects: "the hilltop pavilion, the street lamps, the maple trees on both sides, the flower beds along the path, "

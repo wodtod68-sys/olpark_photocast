@@ -9,7 +9,7 @@ import argparse
 import json
 from datetime import datetime, timezone
 from pathlib import Path
-from .common import OUT, load_spot, parse_local, log, load_yaml
+from .common import OUT, load_spot, parse_local, log, load_yaml, expand
 from .conditions import conditions
 from .scene import build_state, delta, apply_overrides
 from .prompt import build_prompt
@@ -54,14 +54,17 @@ def compose(spot: dict, tgt_dt: datetime, overrides: dict | None = None) -> dict
         ts = dict(ts, overrides=dict(ts.get("overrides") or {}, assume=assume))
     dl = delta(bs, ts)
     prompt, pinfo = build_prompt(spot, bs, ts, dl, spot["base_dt"], tgt_dt)
+    # 목표 단계에 참조 사진(phenology.yaml ref)이 있으면 두 번째 이미지로 첨부한다
+    ref = next((expand(t["ref"]) for t in ts["trees"] if t.get("ref")), None)
     return dict(base_cond=base_c, target_cond=tgt_c, base=bs, target_data=ts_data, target=ts, delta=dl,
-                prompt=prompt, info=pinfo)
+                prompt=prompt, info=pinfo, ref=ref)
 
 
 def run_predict(spot: dict, tgt_dt: datetime, n: int, model: str, dry_run: bool, ref: Path | None = None,
                 out_dir: Path | None = None, quiet: bool = False, overrides: dict | None = None) -> dict:
     c = compose(spot, tgt_dt, overrides)
     bs, ts, dl, prompt, pinfo = c["base"], c["target"], c["delta"], c["prompt"], c["info"]
+    ref = ref or c["ref"]           # --ref를 주지 않으면 단계별 참조 사진
     out_dir = out_dir or OUT / spot["id"] / tgt_dt.astimezone(spot["tz"]).strftime("%Y%m%d_%H%M")
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "scene_state.json").write_text(json.dumps(dict(base=bs, target=ts, delta=dl), ensure_ascii=False,

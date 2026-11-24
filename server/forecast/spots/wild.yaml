@@ -27,9 +27,9 @@ airkorea_region: 서울
 airkorea_station: 송파구
 
 scene_terms:
-  subjects: "the hilltop pavilion, the street lamps, the red maple trees on both sides, the dried flower stalks along the path, "
+  subjects: "the hilltop pavilion, the street lamps, the maple trees on both sides, the flower beds along the path, "
   subjects_short: "the pavilion and trees"
-  ground: "the dried flower field and the path"
+  ground: "the flower field and the path"
   scene_kind: "phone photo"
 
 notes: "8경 들꽃마루. 기준 사진: 아이폰 원본(~/skyfinder/basephotos), 전송용 사본 server/base_photos/wild.jpg."

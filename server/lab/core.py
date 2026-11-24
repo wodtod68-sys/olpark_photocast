@@ -369,7 +369,7 @@ def generate(user: str, spot_id: str, dt_text: str, overrides: dict | None, temp
             if dst.exists():
                 cost, lat, cached = 0.0, 0.0, 1
             else:
-                r = generate_one(c["prompt"], base_path, model)
+                r = generate_one(c["prompt"], base_path, model, c["ref"])
                 extra = r["attempts"] - 1
                 if extra:
                     _add_usage(user, extra)      # 재시도한 호출도 센다

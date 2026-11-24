@@ -77,18 +77,28 @@ species:
       - {start: "09-25", name: yellowing,   ko: 누레지는 중, desc: "green grass turning yellowish"}
       - {start: "10-25", name: browning,    ko: 대부분 누렇게, desc: "mostly yellow-brown grass"}
       - {start: "11-15", name: dormant,     ko: 누런 휴면,  desc: "dry straw-brown dormant grass"}
-  # 들꽃마루 가을 꽃밭(코스모스·황화코스모스). 파종·정리 시기는 공원 관리 일정에 따라 다르다
+  # 들꽃마루 꽃밭: 5월 꽃망울 → 5월 말 양귀비 절정 → 여름 초록 → 가을 코스모스 → 11~4월 시든 줄기.
+  # 파종·정리 시기는 공원 관리 일정에 따라 다르다
+  # ref: 이 단계일 때 두 번째 이미지로 첨부하는 참조 사진 (pics/maru_ref_* 의 워터마크 지운 사본)
   cosmos:
-    name_en: cosmos field
-    name_ko: 코스모스
+    name_en: flower field on the slope
+    name_ko: 꽃밭
     aliases: [코스모스, 황화코스모스, cosmos]
     stages:
-      - {start: "01-01", name: cleared,     ko: 정리된 밭,  desc: "bare soil and dry stalks with no flowers"}
-      - {start: "05-01", name: growing,     ko: 자라는 중,  desc: "low green leafy plants with no flowers"}
-      - {start: "07-01", name: tall_green,  ko: 꽃 드묾,    desc: "tall green cosmos plants with only a few flowers"}
-      - {start: "09-01", name: bloom,       ko: 만개,       desc: "a dense field of blooming orange and yellow cosmos flowers"}
-      - {start: "10-20", name: fading,      ko: 지는 중,    desc: "fading cosmos with fewer, duller flowers and brown seed heads"}
-      - {start: "11-05", name: withered,    ko: 시듦,       desc: "withered brown stalks with no flowers"}
+      - {start: "01-01", name: winter,      ko: 시든 줄기,  desc: "withered brown stalks with no flowers"}
+      - {start: "05-01", name: buds,        ko: 꽃망울,     ref: ref_photos/wild_may.jpg,
+         desc: "a lush green field of young flower plants with closed buds and only a handful of red poppies scattered sparsely, like the field in the second image (use the second image only for the plants and flowers, not its sky, lighting or framing)"}
+      - {start: "05-10", name: poppy_few,   ko: 양귀비 조금, ref: ref_photos/wild_may.jpg,
+         desc: "a lush green field of young flower plants with red poppies scattered here and there, somewhat more than in the second image (use the second image only for the plants and flowers, not its sky, lighting or framing)"}
+      - {start: "05-18", name: poppy_more,  ko: 양귀비 늘어남, ref: ref_photos/wild_may.jpg,
+         desc: "a green field with many red poppies opening across it, clearly more than in the second image but not yet a full carpet (use the second image only for the plants and flowers, not its sky, lighting or framing)"}
+      - {start: "05-25", name: poppy_peak,  ko: 양귀비 절정, ref: ref_photos/wild_poppy.jpg,
+         desc: "a dense field of blooming red and orange poppies on green stems, like the field in the second image (use the second image only for the plants and flowers, not its sky, lighting or framing)"}
+      - {start: "06-15", name: summer,      ko: 여름 초록,  ref: ref_photos/wild_summer.jpg,
+         desc: "a lush green summer field of leafy plants with only a few small orange flowers, like the field in the second image (use the second image only for the plants and flowers, not its sky, lighting or framing)"}
+      - {start: "09-01", name: cosmos,      ko: 코스모스 만개, ref: ref_photos/wild_cosmos.jpg,
+         desc: "a dense field of blooming orange and yellow cosmos flowers, like the field in the second image (use the second image only for the plants and flowers, not its sky, lighting, framing or people)"}
+      - {start: "11-01", name: winter,      ko: 시든 줄기,  desc: "withered brown stalks with no flowers"}
   # 장미광장: 5월 중순~6월 1차 개화, 가을 2차 개화(약하게). 11월 중순부터 겨울 짚 보온.
   # 2026-11-22 실측: 장미 덤불이 짚으로 싸여 있음
   rose:

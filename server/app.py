@@ -164,7 +164,7 @@ async def forecast(spot: str = Query(...), datetime_: str = Query(..., alias="da
         calls = 1
         try:
             c = await run_in_threadpool(core.run_compose, spot, datetime_, None, core.template_texts(tpl))
-            g = await run_in_threadpool(generate_one, c["prompt"], sp["base_image_path"], MODEL)
+            g = await run_in_threadpool(generate_one, c["prompt"], sp["base_image_path"], MODEL, c["ref"])
             calls = g["attempts"]
             if g.get("image") is None:
                 raise HTTPException(502, f"이미지 생성에 실패했어요: {g.get('error', '')[:200]}")

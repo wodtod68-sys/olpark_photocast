@@ -250,6 +250,7 @@ def apply_overrides(state: dict, ov: dict | None) -> dict:
             want = ov["trees"].get(t["species"])
             st = next((x for x in cal[t["species"]]["stages"] if x["name"] == want), None) if want else None
             if st:
-                t.update(stage=st["name"], desc=st["desc"], stage_ko=st.get("ko", st["name"]), source="override")
+                t.update(stage=st["name"], desc=st["desc"], stage_ko=st.get("ko", st["name"]), ref=st.get("ref"),
+                         source="override")
     s["overrides"] = ov
     return s

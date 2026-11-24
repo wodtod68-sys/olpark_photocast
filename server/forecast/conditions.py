@@ -312,7 +312,7 @@ def phenology(spot: dict, dt: datetime) -> list[dict]:
         prog = (d - starts[i]).days / max((nxt - starts[i]).days, 1)
         out.append(dict(species=key, label=tr.get("species"), name_en=cal[key].get("name_en", key),
                         name_ko=cal[key].get("name_ko", tr.get("species")), stage=st[i]["name"],
-                        stage_ko=st[i].get("ko", st[i]["name"]), desc=st[i]["desc"],
+                        stage_ko=st[i].get("ko", st[i]["name"]), desc=st[i]["desc"], ref=st[i].get("ref"),
                         progress=round(prog, 2), source="phenology.yaml(seoul_normal_estimate)"))
     return out
 

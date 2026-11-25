@@ -85,17 +85,25 @@ def precip_form(w: dict) -> dict:
     return dict(form=form, intensity=inten if form != "none" else None, mm_h=mm)
 
 
+def has_snow(ground) -> bool:
+    """두껍게(snow)든 살짝(snow_thin)이든 눈이 쌓였나."""
+    return "snow" in ground or "snow_thin" in ground
+
+
 def ground_state(w: dict, light: str, trees: list[dict]) -> list[str]:
     P, F = rules()["precip"], rules()["frost"]
     g = []
     if (w.get("snow_depth") or 0) > 0.005 or (w.get("snowfall_3h") or 0) > 0.2:
-        g.append("snow")
+        S = rules().get("snow_cover") or {"thin_max_depth_m": 0.03, "thin_max_snowfall_3h_cm": 2.0}
+        thin = ((w.get("snow_depth") or 0) < S["thin_max_depth_m"]
+                and (w.get("snowfall_3h") or 0) < S["thin_max_snowfall_3h_cm"])
+        g.append("snow_thin" if thin else "snow")
     elif (w.get("precip_3h") or 0) >= P["wet_ground_mm_3h"]:
         g.append("wet")
     t, rh = w.get("temperature_2m"), w.get("relative_humidity_2m")
     order = [s["stage"] for s in rules()["light_stages"]]
     if (t is not None and rh is not None and t <= F["temp_max_c"] and rh >= F["rh_min"]
-            and order.index(light) <= order.index(F["max_light_stage"]) and "snow" not in g):
+            and order.index(light) <= order.index(F["max_light_stage"]) and not has_snow(g)):
         g.append("frost")
     if any(tr["stage"] in ("leaf_fall", "needle_fall") for tr in trees):
         g.append("leaves")
@@ -227,7 +235,7 @@ def override_choices(state: dict) -> dict:
         haze=[f"H{i}" for i in range(5)],
         sky=["clear", "partly", "high", "low_many", "overcast", "golden", "twilight", "night", "rain", "fog"],
         precip=["none", "rain:light", "rain:moderate", "rain:heavy", "snow:light", "snow:moderate", "snow:heavy"],
-        ground=["wet", "snow", "frost", "leaves"],
+        ground=["wet", "snow_thin", "snow", "frost", "leaves"],
         lamps=["on", "off"] if state.get("lamps", {}).get("desc") else [],
         trees={t["species"]: [s["name"] for s in cal[t["species"]]["stages"]] for t in state["trees"]},
     )

@@ -37,6 +37,7 @@ haze:
 ground:
   wet: 젖은 바닥
   snow: 눈 쌓임
+  snow_thin: 눈 살짝
   frost: 서리
 lamps_on: 조명 켜짐
 tree: "{name} {stage}"

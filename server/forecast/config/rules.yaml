@@ -69,6 +69,10 @@ kma_pty: {0: none, 1: rain, 2: sleet, 3: snow, 4: shower, 5: drizzle, 6: drizzle
 precip:
   rain_mm_h: 0.1
   wet_ground_mm_3h: 0.2
+# 쌓인 눈: 적설이 이보다 얕고 최근 3시간 강설도 적으면 "살짝 덮임"(snow_thin), 아니면 "두껍게"(snow)
+snow_cover:
+  thin_max_depth_m: 0.03      # 3cm
+  thin_max_snowfall_3h_cm: 2.0
 frost:
   temp_max_c: 0.5
   rh_min: 80

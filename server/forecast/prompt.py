@@ -6,6 +6,7 @@ lighting 블록 우선순위: 강수 > 안개 > 밤 > 박명 > 흐림 > 태양 �
 from __future__ import annotations
 from datetime import datetime
 from .common import load_yaml, rules
+from .scene import has_snow
 
 
 # ---------------- 템플릿 키 추적 ----------------
@@ -221,7 +222,7 @@ def block_trees(T, b, t) -> str:
     # 눈이 쌓이면 잔디·꽃밭처럼 땅을 덮는 것(phenology ground_cover)은 "그대로"라고 하지 않는다(눈과 충돌)
     if T["trees"].get("keep"):
         cal = load_yaml("phenology.yaml")["species"]
-        snowy = "snow" in t["ground"]
+        snowy = has_snow(t["ground"])
         items += [T["trees"]["keep"].format(species=x.get("name_en", x["species"]), target=x["desc"])
                   for x in t["trees"] if x["species"] in bs and bs[x["species"]]["stage"] == x["stage"]
                   and not (snowy and cal.get(x["species"], {}).get("ground_cover"))]
@@ -244,10 +245,12 @@ def block_lamps(T, t) -> str:
 def block_ground(T, b, t) -> str:
     G = T["ground"]
     bg, tg = set(b["ground"]), set(t["ground"])
-    items = [G[k] for k in ("snow", "wet", "frost", "leaves") if k in tg and k not in bg]
-    if "wet" in bg and "wet" not in tg and "snow" not in tg:
+    # snow_thin 문장이 없는 예전 템플릿은 snow 문장을 쓴다
+    items = [G.get(k) or G["snow"] if k == "snow_thin" else G[k]
+             for k in ("snow", "snow_thin", "wet", "frost", "leaves") if k in tg and k not in bg]
+    if "wet" in bg and "wet" not in tg and not has_snow(tg):
         items.append(G["dry_from_wet"])
-    if "snow" in bg and "snow" not in tg:
+    if has_snow(bg) and not has_snow(tg):
         items.append(G["snow_gone"])
     return G["text"].format(items=G["joiner"].join(items)) if items else ""
 

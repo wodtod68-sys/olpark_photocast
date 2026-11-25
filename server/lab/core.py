@@ -188,7 +188,7 @@ def check_overrides(ov: dict | None) -> None:
             if v not in VALID_OVERRIDES[k]:
                 raise ValueError(f"덮어쓰기 {k}={v}는 쓸 수 없어요. 가능한 값: {', '.join(VALID_OVERRIDES[k])}")
         elif k == "ground":
-            bad = [g for g in (v or []) if g not in ("wet", "snow", "frost", "leaves")]
+            bad = [g for g in (v or []) if g not in ("wet", "snow_thin", "snow", "frost", "leaves")]
             if not isinstance(v, list) or bad:
                 raise ValueError(f"덮어쓰기 ground는 [wet, snow, frost, leaves] 중에서 고른 목록이어야 해요 (잘못된 값: {bad or v})")
         elif k == "trees":
@@ -420,7 +420,7 @@ VALIDATION_CONDS = [
     ("v_rain_light", "2026-11-22T12:00", {**_C, "precip": "rain:light", "ground": ["wet"]}),
     ("v_rain_heavy", "2026-11-22T12:00", {**_C, "precip": "rain:heavy", "ground": ["wet"]}),
     ("v_snowfall", "2026-11-22T12:00", {**_C, "precip": "snow:moderate", "sky": "overcast", "ground": ["snow"]}),
-    ("v_snow_after", "2026-11-22T12:00", {**_C, "ground": ["snow"]}),     # 눈 그친 뒤 맑음
+    ("v_snow_after", "2026-11-22T12:00", {**_C, "ground": ["snow_thin"]}),  # 눈 그친 뒤 맑음, 살짝 쌓임(적설 3cm 미만)
     ("v_fog", "2026-11-22T08:00", {**_C, "haze": "H4", "sky": "fog", "direct_sun": "D0"}),
     ("v_haze", "2026-11-22T12:00", {**_C, "haze": "H3"}),                 # 짙은 연무·미세먼지
     ("v_rain_night", "2026-11-22T20:30", {**_C, "precip": "rain:moderate", "ground": ["wet"]}),  # 비 + 밤 + 조명

@@ -23,7 +23,7 @@ species:
     # 2026-11-22 실측(들꽃마루 양옆): 단풍 절정 → 절정을 11월 하순까지로 늦춤
     stages:
       - {start: "01-01", name: bare,        ko: 앙상함,     desc: "bare branches"}
-      - {start: "04-10", name: leaf_out,    ko: 새잎,       desc: "small fresh light-green spring leaves just coming out (no red, orange or yellow autumn colours)"}   # 검증 #wild 4월: "reddish"에 단풍색이 나옴
+      - {start: "04-10", name: leaf_out,    ko: 새잎,       desc: "small fresh light-green spring leaves just coming out on every one of these trees, including the large ones on the right and left; no red, orange or yellow autumn colours anywhere"}   # 검증 #wild 4월: "reddish"에 단풍색이 나옴
       - {start: "05-01", name: green,       ko: 초록,       desc: "full green foliage"}
       - {start: "10-22", name: turning,     ko: 물드는 중,  desc: "leaves starting to turn orange and red"}
       - {start: "11-05", name: peak_red,    ko: 단풍 절정,  desc: "vivid red and orange foliage"}

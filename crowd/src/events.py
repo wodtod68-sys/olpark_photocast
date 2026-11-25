@@ -41,8 +41,7 @@ def measure_event_hours() -> pd.Series:
 
 def load_events(venues: dict) -> pd.DataFrame:
     """공연 단위 행을 검증해서 돌려준다. 틀린 행이 있으면 행 번호와 함께 출력하고 멈춘다.
-    결과 열: start, end, venue, title, audience.
-    end = 관람객 기록이 끝나는 시각 = floor(start) − LEAD_HOURS + EVENT_HOURS (18:00 → 22:00). 스팟 보정에 쓴다."""
+    결과 열: start, venue, title, audience."""
     ev = pd.read_csv(MANUAL_PATH, dtype=str, keep_default_na=False, encoding="utf-8-sig")
     errors = []
     for i, r in ev.iterrows():
@@ -65,7 +64,6 @@ def load_events(venues: dict) -> pd.DataFrame:
     out = pd.DataFrame({"start": pd.to_datetime(ev.date + " " + ev.start), "venue": ev.venue, "title": ev.title})
     seats = ev.venue.map(lambda v: venues[v]["seats"])
     out["audience"] = [int(a) if a.strip() else round(s * OCCUPANCY) for a, s in zip(ev.audience, seats)]
-    out["end"] = out.start.dt.floor("h") + timedelta(hours=EVENT_HOURS - LEAD_HOURS)
     outside = out[(out.start < START) | (out.start >= pd.Timestamp(END) + timedelta(days=1))]
     if len(outside):
         print(f"경고: 내보내기 기간({START}~{END}) 밖의 공연 {len(outside)}건은 시간별 파일에서 빠짐")

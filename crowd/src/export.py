@@ -78,7 +78,7 @@ def main():
     print("공연 있는 운영시간 칸:", int(df.has_event.sum()))
     print("등급 비율(%):", (out.crowd_level.value_counts(normalize=True) * 100).reindex(LEVELS).round(1).to_dict())
     print("요일 유형별 평균 점수:", df.groupby("day_type").score.mean().round(0).to_dict())
-    print("공연 보정된 칸:", int((out.reason.str.contains("공연 동선")).sum()))
+    print("공연 보정된 칸:", int((out.reason.str.contains("공연 입장|공연 퇴장")).sum()))
 
 
 if __name__ == "__main__":

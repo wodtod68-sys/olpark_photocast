@@ -6,7 +6,8 @@
 
 - 프론트엔드: Vite + React + TS (`src/`)
 - AI 예상 이미지 서버: FastAPI + forecast 패키지 + Gemini 이미지 편집 (`server/`)
-- 서버 없이도 프론트는 돈다(자리표시 이미지). 혼잡도는 아직 `src/data/mock.ts`의 계산을 쓴다.
+- 혼잡도 엔진: Python, 공공데이터로 만든 정적 JSON (`crowd/` → `public/crowd_forecast.json`)
+- 서버 없이도 프론트는 돈다(자리표시 이미지). 혼잡도는 엔진 JSON을 읽고, JSON에 없는 날짜·스팟만 `src/data/mock.ts`의 계산을 쓴다.
 
 ## 구조
 
@@ -14,8 +15,10 @@
 flowchart LR
   subgraph 브라우저
     UI[ResultScreen] -->|getForecast| API[src/data/api.ts]
-    API -->|혼잡도| MOCK[mock.ts crowd]
+    API -->|혼잡도| CJSON[public/crowd_forecast.json]
+    API -.->|JSON에 없으면| MOCK[mock.ts crowd]
   end
+  ENGINE[crowd/ 혼잡도 엔진<br/>python -m src.export] -->|미리 만들어 둠| CJSON
   API -->|GET /api/forecast<br/>spot, datetime| SRV[server/app.py<br/>FastAPI]
   SRV -->|있으면 즉시| CACHE[(server/cache/<br/>이미지 + result.json)]
   SRV --> COND[forecast.conditions<br/>태양 pvlib · 날씨 · 대기질 · 수목 달력]
@@ -74,6 +77,16 @@ npm run dev                    # http://localhost:5173
 
 - `.env.local`이 없으면(VITE_API_BASE 미설정) 서버를 부르지 않고 예전처럼 자리표시 이미지만 쓴다.
 - 배포 시에는 `VITE_API_BASE=https://<서버 주소>`로 빌드한다(`npm run build`). 서버 CORS는 지금 localhost:5173만 허용하므로 배포 주소를 `server/app.py`에 추가해야 한다.
+
+### 3) 혼잡도 엔진 (`crowd/`)
+
+혼잡도 점수는 서버가 아니라 미리 만든 정적 JSON이다. 프론트만 띄워도 `public/crowd_forecast.json`을 읽어 바로 나온다. 엔진은 공연 일정이나 스팟 설정을 바꿀 때만 다시 돌린다.
+
+- 데이터: 한국체육산업개발 「올림픽공원 2025 차량입출차, 공연, 날씨정보 등 연계 데이터」 (KCISA API_CPM_009)
+- 방식: 2025년 주차 데이터로 (평일 / 주말·공휴일 / 명절) × 시간 평균과 공연 관람객 효과를 잰다. 미래 날짜·공연에 적용해 0~100점, 4단계 등급(30/75/85), 근거 문구를 만든다.
+- 범위: 2026-12-01 ~ 2027-02-28, 06~22시
+- 웹 연결: `src/data/api.ts`가 (스팟 id, 시각)으로 JSON을 찾는다. 등급 경계는 `src/data/types.ts`의 `CROWD_LEVELS`와 엔진이 같은 값을 쓴다.
+- 실행 방법·설정 파일·한계: **[crowd/README.md](crowd/README.md)**
 
 ## 스팟 설정
 

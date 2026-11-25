@@ -72,8 +72,10 @@
   margin-top: 6px;
   padding-left: 6px;
   font-size: 14px;
+  line-height: 1.25;
   color: var(--ink-3);
-  white-space: nowrap;
+  /* 좁은 구간(약간 붐빔 75~84)은 옆 라벨과 겹치지 않게 단어 단위로 줄을 바꾼다 */
+  word-break: keep-all;
 }
 
 .step[data-current] .stepLabel {

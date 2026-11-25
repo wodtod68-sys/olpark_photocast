@@ -1,0 +1,8 @@
+{
+  "naholo": {"name": "나홀로나무", "near_venues": []},
+  "peace_plaza": {"name": "평화의광장", "near_venues": ["KSPO DOME", "핸드볼경기장", "올림픽홀"]},
+  "mongchon_lake": {"name": "몽촌호수", "near_venues": []},
+  "rose": {"name": "장미광장", "near_venues": []},
+  "wild": {"name": "들꽃마루", "near_venues": []},
+  "gyeong4": {"name": "4경", "near_venues": []}
+}

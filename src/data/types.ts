@@ -14,12 +14,12 @@ export interface Spot {
 
 export type CrowdLevel = '여유' | '보통' | '약간 붐빔' | '붐빔';
 
-// 점수 구간. 화면의 눈금도 이 값으로 그린다
+// 점수 구간. 화면의 눈금도 이 값으로 그린다. 혼잡도 엔진(crowd/src/score.py BOUNDS)과 같은 값
 export const CROWD_LEVELS: { level: CrowdLevel; min: number }[] = [
   { level: '여유', min: 0 },
   { level: '보통', min: 30 },
-  { level: '약간 붐빔', min: 55 },
-  { level: '붐빔', min: 75 },
+  { level: '약간 붐빔', min: 75 },
+  { level: '붐빔', min: 85 },
 ];
 
 // AI 예상 이미지 서버(server/)가 함께 돌려주는 조건값

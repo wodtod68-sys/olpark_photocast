@@ -31,7 +31,11 @@ export function GridTab({ me, onUsage }: { me: Me; onUsage: () => void }) {
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
 
+  const [cmpTid, setCmpTid] = useState<number | null>(null);
+  const [onlyDiff, setOnlyDiff] = useState(false);
   const sharedT = templates.find((t) => t.current_shared);
+  // 비교 상대: 고른 템플릿이 없으면 현재 shared
+  const cmpT = templates.find((t) => t.id === cmpTid) ?? sharedT;
   useEffect(() => {
     lab<LabSpot[]>('/spots').then(setSpots);
     lab<Template[]>('/templates').then((ts) => {
@@ -44,10 +48,10 @@ export function GridTab({ me, onUsage }: { me: Me; onUsage: () => void }) {
   const loadMatrices = () => {
     const q = `&date=${date}&suite=${suite}` + (suite === 'validation' ? `&model=${model}` : '');
     if (tid) lab<Matrix>(`/grid/matrix?template_id=${tid}${q}`).then(setMine);
-    if (sharedT) lab<Matrix>(`/grid/matrix?template_id=${sharedT.id}${q}`).then(setShared);
+    if (cmpT) lab<Matrix>(`/grid/matrix?template_id=${cmpT.id}${q}`).then(setShared);
   };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(loadMatrices, [tid, date, sharedT?.id, suite, model]);
+  useEffect(loadMatrices, [tid, date, cmpT?.id, suite, model]);
 
   const estimate = async () => {
     setBusy(true);
@@ -79,44 +83,6 @@ export function GridTab({ me, onUsage }: { me: Me; onUsage: () => void }) {
   };
 
   const spotName = (id: string) => spots.find((x) => x.id === id)?.name ?? id;
-  const grid = (m: Matrix | null, title: string) => (
-    <div className={s.col} style={{ overflowX: 'auto' }}>
-      <h3 className={s.h3}>{title}</h3>
-      {m && (
-        <table className={s.grid}>
-          <thead>
-            <tr>
-              <th></th>
-              {m.conds.map((c) => (
-                <th key={c}>{GRID_KO[c] ?? c}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {m.spots.map((sp) => (
-              <tr key={sp}>
-                <th>{spotName(sp)}</th>
-                {m.conds.map((c) => {
-                  const cell = m.cells[`${sp}|${c}`];
-                  return (
-                    <td key={c}>
-                      {cell ? (
-                        <a href={cell.url} target="_blank" rel="noreferrer">
-                          <img src={cell.url} alt="" />
-                        </a>
-                      ) : (
-                        <span className={s.muted}>없음</span>
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
-  );
 
   return (
     <div className={s.single}>
@@ -180,10 +146,64 @@ export function GridTab({ me, onUsage }: { me: Me; onUsage: () => void }) {
           진행 {job.done}/{job.total} {job.status === 'done' ? '— 완료' : '…'} {job.errors.length ? `오류 ${job.errors.length}건: ${job.errors.join(' / ')}` : ''}
         </p>
       )}
-      <div className={s.versus}>
-        {grid(mine, `선택한 템플릿 (${templates.find((t) => t.id === tid)?.name ?? ''})`)}
-        {grid(shared, `현재 shared (${sharedT?.name ?? ''})`)}
+      <div className={s.filters}>
+        <b>나란히 비교</b>
+        <span className={s.muted}>왼쪽 = 위에서 고른 템플릿, 오른쪽 =</span>
+        <select value={cmpT?.id ?? ''} onChange={(e) => setCmpTid(Number(e.target.value))}>
+          {templates.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.current_shared ? '★ ' : ''}
+              {t.name} · {t.owner}
+            </option>
+          ))}
+        </select>
+        <label className={s.check}>
+          <input type="checkbox" checked={onlyDiff} onChange={(e) => setOnlyDiff(e.target.checked)} />
+          바뀐 칸만
+        </label>
       </div>
+      {mine && shared && (
+        <div style={{ overflowX: 'auto' }}>
+          <table className={s.grid}>
+            <thead>
+              <tr>
+                <th></th>
+                {mine.spots.map((sp) => (
+                  <th key={sp} colSpan={2}>
+                    {spotName(sp)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {mine.conds
+                .filter((c) => !onlyDiff || mine.spots.some((sp) => mine.cells[`${sp}|${c}`]?.url !== shared.cells[`${sp}|${c}`]?.url))
+                .map((c) => (
+                  <tr key={c}>
+                    <th>{GRID_KO[c] ?? c}</th>
+                    {mine.spots.map((sp) => {
+                      const a = mine.cells[`${sp}|${c}`];
+                      const b = shared.cells[`${sp}|${c}`];
+                      const same = a && b && a.url === b.url;
+                      return [a, b].map((cell, k) => (
+                        <td key={`${sp}${k}`} style={k === 0 ? { borderLeft: '2px solid var(--ink)' } : undefined}>
+                          {cell ? (
+                            <a href={cell.url} target="_blank" rel="noreferrer" title={k === 0 ? '왼쪽 템플릿' : '오른쪽 템플릿'}>
+                              <img src={cell.url} alt="" style={same && k === 1 ? { opacity: 0.35 } : undefined} />
+                            </a>
+                          ) : (
+                            <span className={s.muted}>없음</span>
+                          )}
+                          {same && k === 1 && <div className={s.small}>같은 이미지</div>}
+                        </td>
+                      ));
+                    })}
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

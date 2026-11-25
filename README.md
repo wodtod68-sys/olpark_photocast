@@ -88,7 +88,7 @@ npm run dev                    # http://localhost:5173
 - 화면: `#/lab` (`src/lab/`, 공개 화면과 따로 불러옴). 탭: 실험 · 기록 · 그리드 · 실제 사진
 - API: `server/lab/` (`/api/lab/...`). 입장 = 공용 비밀번호 `LAB_PASSCODE` + 사용자 `LAB_USERS`
 - 저장: `server/lab.db`(SQLite) + `server/lab_data/`(생성 이미지 JPEG 90·긴 변 1536, 실제 사진, 비교 패널) — 커밋 안 함
-- 기본 모델 Nano Banana Pro(`gemini-3-pro-image`, 장당 $0.134). 사용자별 하루 20장(`LAB_DAILY_LIMIT`)
+- 기본 모델 Nano Banana 2.1(`gemini-nano-banana-2.1`, 장당 $0.034, 모델 v1부터). Pro(장당 $0.134)는 실험실에서 고를 수 있다. 사용자별 하루 20장(`LAB_DAILY_LIMIT`)
 - 공개 화면 예측은 현재 shared 템플릿 + 아래 기준 사진을 쓴다. 공개 캐시 키에 모델 id와 기준 사진 해시가 들어간다.
 - 같이 쓰기: `bash scripts/start_lab.sh` → Cloudflare quick tunnel 주소를 친구에게 (처음 한 번 `bash scripts/install_cloudflared.sh`)
 

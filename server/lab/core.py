@@ -31,7 +31,7 @@ SPOT_IDS = ["rose", "wild", "gyeong4", "naholo"]
 IMG_DIR = db.DATA / "images"
 REAL_DIR = db.DATA / "real"
 PANEL_DIR = db.DATA / "panels"
-DEFAULT_MODEL = "pro"
+DEFAULT_MODEL = "nb2.1"
 SAVE_LONG_SIDE, SAVE_QUALITY = 1536, 90
 
 REQUIRED = {

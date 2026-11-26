@@ -1,8 +1,11 @@
 {
+  "peace_plaza": {"name": "세계평화의문", "near_venues": []},
+  "thumb": {"name": "엄지손가락", "near_venues": ["KSPO DOME", "핸드볼경기장", "올림픽홀"]},
+  "mongchon_lake": {"name": "몽촌해자", "near_venues": []},
+  "gyeong4": {"name": "대화", "near_venues": []},
+  "toseong_trail": {"name": "몽촌토성 산책로", "near_venues": []},
   "naholo": {"name": "나홀로나무", "near_venues": []},
-  "peace_plaza": {"name": "평화의광장", "near_venues": ["KSPO DOME", "핸드볼경기장", "올림픽홀"]},
-  "mongchon_lake": {"name": "몽촌호수", "near_venues": []},
-  "rose": {"name": "장미광장", "near_venues": []},
-  "wild": {"name": "들꽃마루", "near_venues": []},
-  "gyeong4": {"name": "4경", "near_venues": []}
+  "lake88": {"name": "88호수 팔각정", "near_venues": []},
+  "wild": {"name": "들꽃마루길", "near_venues": []},
+  "rose": {"name": "장미광장", "near_venues": []}
 }

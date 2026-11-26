@@ -92,7 +92,9 @@ npm run dev                    # http://localhost:5173
 
 `server/forecast/spots/{rose,wild,gyeong4,naholo}.yaml` — 좌표·카메라 방위는 2026-11-22 현장 실측, 화각은 아이폰 1x 세로(50°/65°).
 기준 시각은 기준 사진 EXIF, 기준 날씨는 그 시각의 실제 값(Open-Meteo). 수목 단계는 `server/forecast/config/phenology.yaml`(11/22 관찰로 보정).
-4경 이름은 확정 전(임시 '4경'). 프롬프트 문장은 `server/forecast/config/templates.yaml`, 판단 규칙은 `rules.yaml`·`delta_rules.yaml`.
+4경 이름은 '대화'(id `gyeong4`). 프롬프트 문장은 `server/forecast/config/templates.yaml`, 판단 규칙은 `rules.yaml`·`delta_rules.yaml`.
+
+첫 화면은 올림픽공원 9경(1~9경)이고, 번호 = 몇 경인지다. 스팟 목록·지도 좌표는 `src/data/mock.ts`의 `MOCK_SPOTS`에 있다. 1·2·3·5·7경(`peace_plaza`, `thumb`, `mongchon_lake`, `toseong_trail`, `lake88`)은 아직 이미지 서버 스팟 설정(`server/forecast/spots/*.yaml`)과 기준 사진이 없다. 그래서 서버를 켜도 AI 예상 이미지 대신 자리표시 이미지가 나온다.
 
 ## 프롬프트 실험실
 

@@ -28,7 +28,7 @@
   }
 }
 
-/* 누르는 영역 64px, 보이는 표식 46px */
+/* 누르는 영역 64px, 보이는 표식 42px (9경으로 늘면서 넓이 15% 축소: 46 → 42) */
 .marker {
   position: absolute;
   width: 64px;
@@ -42,12 +42,12 @@
 .dot {
   display: grid;
   place-items: center;
-  width: 46px;
-  height: 46px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   background: var(--ink);
   color: var(--paper);
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 700;
   line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -63,12 +63,12 @@
   outline-offset: 3px;
 }
 
-/* 폰(세로)은 지도가 작으므로 표식도 조금 작게. 2·3번이 서로 붙지 않게 */
+/* 폰(세로)은 지도가 작으므로 표식도 조금 작게(넓이 15% 축소: 36 → 33). 가까운 3·4경, 8·9경이 서로 붙지 않게 */
 @media (orientation: portrait) {
   .dot {
-    width: 36px;
-    height: 36px;
-    font-size: 20px;
+    width: 33px;
+    height: 33px;
+    font-size: 18px;
     border-width: 2px;
   }
 }

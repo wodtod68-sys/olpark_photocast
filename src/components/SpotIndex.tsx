@@ -21,7 +21,9 @@ export function SpotIndex({ spots }: { spots: Spot[] }) {
           </li>
         ))}
       </ol>
-      {spots[0] && <p className={styles.credit}>사진 출처: {spots[0].photo.credit}</p>}
+      {spots.length > 0 && (
+        <p className={styles.credit}>사진 출처: {[...new Set(spots.map((s) => s.photo.credit))].join(' / ')}</p>
+      )}
     </section>
   );
 }
